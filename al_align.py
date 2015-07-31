@@ -259,7 +259,6 @@ def filter_al(args, vprint):
             continue
         end = -dist - 1 #don't exclude first al
         last_chromo = ''
-        print al_list
         with open(args['dist_file'], 'a') as dist_file:
             for al in al_list: #al = (id, start, end, chromo)
                 if end + dist < al[1]:
