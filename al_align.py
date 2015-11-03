@@ -111,7 +111,7 @@ def main(args):
             # Print only when verbose
             with open(args['log'], 'a') as log:
                 log.write(' '.join(a))
-        log.write('\n')
+                log.write('\n')
     else:
         def vprint(*a):
             return None

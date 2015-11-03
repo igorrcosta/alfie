@@ -47,6 +47,8 @@ def argument_parser(hlp=False):
                         dest = 'edist', help = 'Distance between ALs and the start and end of a chromosome.\n(default: %(default)s)')
     parser.add_argument('-g', '--gtf', nargs = '?', type = str, required = True,\
                         dest = 'est', help = 'GTF File with all genome features coordinates.')
+    parser.add_argument('--description', nargs = '?', type = str, default = None,\
+                        dest = 'description', help = 'File with the id of all contigs to be analised\nand optionally their size in base pairs.') 
     parser.add_argument('-v', '--verbose', action = 'store_true', dest = 'verbose', help = 'Verbose switch.')
     parser.add_argument('--duplication_cutoff', nargs = '?', type = int, default = 50,\
                         dest = 'dup_cut', help = 'ALs with 2 hits with identity higher than this will\
@@ -85,7 +87,7 @@ def main():
         args['outpath'] += '/'
     finder_args = deepcopy(args)
     finder_args['outfile'] = args['outpath'] + 'teste.fasta'
-    finder_args['description'] = False
+    finder_args['description'] = args['description']
     finder_args['genome'] = args['genomes'][0]
     finder_args['circos'] = False
     finder_args['idist'] = 0
