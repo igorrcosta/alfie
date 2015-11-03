@@ -222,9 +222,8 @@ def run_blast(db, query, m8):
     try:
         a = Popen(command)
         a.wait()
-    except:
-        print 'Something went wrong with blast!'
-        argument_parser(hlp = True)
+    except OSError:
+        print 'blastn not found!'
         raise
 
 def read_m8(args, all_ids, excluded = [], vprint = lambda x: None, db = ''):
