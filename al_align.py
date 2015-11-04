@@ -9,19 +9,6 @@ __contact__ = 'igor.bioinfo@gmail.com'
 ''' This program will get ALs from the genomes from a sum file,
 align them and make a nexus file.'''
 
-# how it should be:
-'''config.cfg
-sample id: Homo
-genome: /genomes/homo.fa
-gft: /gft/homo.gft
-blast db: /formatdb/homo
-
-sample id: Pan
-...
-
-To run: python alfie.py config.cfg
-'''
-
 import os
 import argparse
 import shlex
@@ -67,7 +54,7 @@ def argument_parser(hlp = False):
     
     parser = argparse.ArgumentParser(description = 'al_align.py',\
                                      argument_default = None, fromfile_prefix_chars = '@')
-    parser.add_argument('-s', '--sum', nargs = '?', type = str,\
+    parser.add_argument('-s', '--sum', nargs = '?', type = str, required = True,\
                         dest = 'sum', help = 'Path to sum file.')
     parser.add_argument('-o', '--outpath', nargs = '?', type = str, default = os.getcwd(),\
                         dest = 'outpath', help = 'Path where the aligned results will be saved. (default: %(default)s)')
@@ -75,26 +62,22 @@ def argument_parser(hlp = False):
                         dest = 'log', help = 'Log file. (default: %(default)s)')
     parser.add_argument('-f', '--filter', nargs = '*', type = str,\
                         dest = 'filter', help = 'Folder to look for duplicated fasta to remove. (default: %(default)s)')
-    parser.add_argument('-id', '--identifier', nargs = '?', type = str, default = '.sum',\
-                        dest = 'identifier', help = 'Identifier to the sum files. Must be unique to them. (default: %(default)s)')
     parser.add_argument('-g', '--genomes', nargs = '*', type = str,\
                         dest = 'genomes', help = 'Path to all genomes used.')
     parser.add_argument('-c', '--chromossomes', nargs = '*', type = str,\
                         dest = 'excluded', help = 'Chromossomes to be excluded.')
     parser.add_argument('-a', '--min_align', nargs = '?', type = int, default = 500,\
-                        dest = 'align_size', help = 'Minimum final alignment lenght.')
+                        dest = 'align_size', help = 'Minimum final alignment lenght.(default: %(default)s)')
     parser.add_argument('-d', '--distance', nargs = '?', type = int, default = 200000,\
-                        dest = 'idist', help = 'Minimum distance between ALs.')
+                        dest = 'idist', help = 'Minimum distance between ALs.(default: %(default)s)')
     parser.add_argument('--minsize', nargs = '?', type = int, default = 500,\
-                        dest = 'min_size', help = 'Minimum sequence size.')
+                        dest = 'min_size', help = 'Minimum sequence size.(default: %(default)s)')
     parser.add_argument('--distance_file', nargs = '?', type = str, default = 'al_align.dist',\
                         dest = 'dist_file', help = 'File to save all distances.')
     parser.add_argument('-p', '--pick', nargs = '?', type = int,\
                         dest = 'pick', help = 'Pick only N ALs.')
     parser.add_argument('--remove_gaps', action = 'store_true', dest = 'nogaps', help = 'Remove gaps from the final alignment.')
     parser.add_argument('--chromo_sep', action = 'store_true',  dest = 'chromo_sep', help = 'Separate ALs by chromossome.')
-    parser.add_argument('-n', '--nexus', action = 'store_true', dest = 'nexus', help = 'Go straight to nexus making.')
-    parser.add_argument('-j', '--join', action = 'store_true', dest = 'join', help = 'Skip to last step (nexus joiner).')
     parser.add_argument('-v', '--verbose', action = 'store_true', dest = 'verbose', help = 'Verbose switch.')
     if hlp:
         args = parser.parse_args(['-h'])
@@ -117,17 +100,7 @@ def main(args):
             return None
     for k in args:
         vprint(k, ' ', str(args[k]))
-    if args['join']:
-       if args['chromo_sep'] or args['nexus'] or args['nogaps']:
-           vprint('skipping to nexus concatenation, ignoring parameters --chromo_sep, --nexus and --remove_gaps')
-           args['chromo_sep'] = False
-           args['nexus'] = False
-           args['nogaps'] = False  
-    elif args['nexus']:
-       if args['chromo_sep']:
-           vprint('--nexus and --chromo_sep are incopatible, ignoring --chromo_sep')
-           args['chromo_sep'] = False
-    elif not args['genomes']:
+    if not args['genomes']:
         print 'No genomes supplied. Check usage: al_align.py --help'
         return
     vprint('#######################')
@@ -135,42 +108,32 @@ def main(args):
         args['outpath'] += '/'
     #Finished analysing arguments.
     nexus_files, sizes = [], []
-    if not args['nexus'] and not args['join']:
-        args['min_seqs'] = len(args['genomes'])
-        filtered_als = filter_al(args, vprint) # Remove ALs too close to each other and filters excluded chromossomes.
-        if args['chromo_sep']:
-            seqs = read_sum(args['genomes'], args['sum'], filtered_als, vprint, chromo_sep=True) #seqs[AL1] = [Homo:Seq_H, Gorilla:Seq_G, Pongo:Seq_P, Pan:Seq_C]
-            separated_files = write_seqs(args['outpath'], seqs, args['min_seqs'], args['min_size'], vprint, chromo_sep=True)
-        else:
-            seqs = read_sum(args['genomes'], args['sum'], filtered_als, vprint) #seqs[AL1] = [Homo:Seq_H, Gorilla:Seq_G, Pongo:Seq_P, Pan:Seq_C]
-            separated_files = write_seqs(args['outpath'], seqs, args['min_seqs'], args['min_size'], vprint)
-        if args['filter']:
-            for f in args['filter']:
-                separated_files = check_for_duplicates(separated_files, f, vprint)
-        aligned_files = run_clustalw(args['outpath'], separated_files)
-        vprint(str(len(separated_files)), ' fasta files.')
-    if not args['join']:
-        folder = '/'.join(args['outpath'].split('/')[:-1]) + '/'
-        aligned_files = [folder + aln for aln in os.listdir(folder) if '.aln' in aln]
-        if not args['chromo_sep']: 
-            vprint(str(len(aligned_files)), ' aligned files.')
-            sizes, nexus_files = make_nexus(args['outpath'], aligned_files, args['align_size'], args['pick'], args['nogaps'], vprint)
-    if args['pick']:
-        nexus_files = [f for f in os.listdir(args['outpath']) if f.endswith('.nexus') and 'all' not in f]
-        if len(nexus_files) < args['pick']:
-            args['pick'] == len(nexus_files)
-        nexus_files = sample(nexus_files, args['pick'])
-    if not sizes:
-        sizes = get_sizes(nexus_files)
-    if not nexus_files:
-        nexus_files = [f for f in os.listdir(args['outpath']) if f.endswith('.nexus') and 'all' not in f]
-    with open(args['outpath'] + 'sample.log', 'w') as sample_file:
-        for n in nexus_files:
-            sample_file.write(n + '\n')
+    args['min_seqs'] = len(args['genomes'])
+    filtered_als = filter_al(args, vprint) # Remove ALs too close to each other and filters excluded chromossomes.
+    seqs = read_sum(args['genomes'], args['sum'], filtered_als, vprint, chromo_sep=args['chromo_sep']) #seqs[AL1] = [Homo:Seq_H, Gorilla:Seq_G, Pongo:Seq_P, Pan:Seq_C]
+    separated_files = write_seqs(args['outpath'], seqs, args['min_seqs'], args['min_size'], vprint, chromo_sep=args['chromo_sep'])
+    if args['filter']:
+        for f in args['filter']:
+            separated_files = check_for_duplicates(separated_files, f, vprint)
+    aligned_files = run_clustalw(args['outpath'], separated_files)
+    vprint(str(len(separated_files)), ' fasta files.')
+    folder = '/'.join(args['outpath'].split('/')[:-1]) + '/'
+    aligned_files = [folder + filename for filename in os.listdir(folder) if '.aln' in filename]
+    vprint(str(len(aligned_files)), ' aligned files.')
     if args['chromo_sep']:
         join_nexus_by_chromo(args['outpath'], aligned_files, args['align_size'], args['nogaps'], vprint)
-    else:
+    else: 
+        sizes, nexus_files = make_nexus(args['outpath'], aligned_files, args['align_size'], args['pick'], args['nogaps'], vprint)
+        if args['pick']:
+            assert len(nexus_files) <= args['pick']
         join_nexus(args['outpath'], sizes, nexus_files)
+        with open(args['outpath'] + 'sample.log', 'w') as sample_file:
+            for n in nexus_files:
+                sample_file.write(n + '\n')
+#    if not sizes:
+#        sizes = get_sizes(nexus_files)
+#    if not nexus_files:
+#        nexus_files = [f for f in os.listdir(args['outpath']) if f.endswith('.nexus') and 'all' not in f]
     
 def read_sum(genome_files, sumf, filtered_als, vprint, chromo_sep=False):
     #will open all genomes on memory!!!
@@ -433,6 +396,7 @@ def join_nexus_by_chromo(path, aligned_files, min_align_size, nogaps, vprint):
         join_nexus(path, sizes, nexus_files, 'all.%s.nexus'%chromo)
 
 def join_nexus(path, sizes, nexus_files, outfile='all.nexus'):
+    print nexus_files, sizes
     soma_old = 0
     soma = 0
     append = '''
