@@ -30,13 +30,13 @@ def argument_parser(hlp=False):
                         dest = 'outpath', help = 'Path where the ALs will be saved.\n(default: %(default)s)')
     parser.add_argument('-l', '--log', nargs = '?', type = str, default = 'al_finder.log',\
                         dest = 'log', help = 'Log file. (default: %(default)s)')
-    parser.add_argument('-f', '--skip_formatdb', action = 'store_true', dest = 'skip_formatdb', help = 'Skip making BLAST databases, use databses from the last run.')
+    parser.add_argument('-f', '--skip_formatdb', action = 'store_true', dest = 'skip_formatdb', help = 'Skip making BLAST databases, look for BLAST databases in the output folder (eg.: 0.db.nsq).')
     parser.add_argument('--locus_length', nargs = '?', type = int, default = 1000,\
                         dest = 'length', help = 'Length of the ALs sequences.\n(default: %(default)s)')
     parser.add_argument('--max_n', nargs = '?', type = float, default = 0,\
                         dest = 'max_n', help = 'Maximum percentage of N\'s in the AL sequence.\n(default: %(default)s)')
-    parser.add_argument('--inter_distance', nargs = '?', type = int, default = 200000,\
-                        dest = 'idist', help = 'Minimum distance between ALs.\n(defaut: %(default)s)')
+    parser.add_argument('--inter_distance', nargs = '*', type = int, default = [200000],\
+                        dest = 'idist', help = 'Minimum distance between ALs. If more than one distance is given, they will be saved in separated folders.\n(defaut: %(default)s)')
     parser.add_argument('--gene_distance', nargs = '?', type = int, default = 200000,\
                         dest = 'gdist', help = 'Minimum (or maximum, if negative) distance between ALs and genes.\n(defaut: %(default)s)')
     parser.add_argument('--gene_locus', action = 'store_true', dest = 'gene_locus',\
@@ -103,7 +103,7 @@ def main():
     blast_args['query'] = args['outpath'] + 'teste.fasta'
     blast_args['outfile'] = args['outpath'] + 'blasted.fasta'
     blast_args['blastm8'] = args['outpath'] + '*queryname**dbname*.m8'
-    blast_args['log'] = args['outpath'] + '*dbname*.log' 
+    blast_args['log'] = args['outpath'] + '*queryname*.log' 
     blast_args['sum'] =  args['outpath'] + 'al_blast.sum'
     blast_args['border'] = 0
     for k in [k for k in blast_args.keys() if type(blast_args[k]) == str and 'queryname' in blast_args[k]]:
@@ -114,10 +114,18 @@ def main():
     align_args['filter'] = False
     align_args['nexus'] = False
     align_args['chromo_sep'] = False
-    align_args['idist'] = args['idist']
     align_args['sum'] =  args['outpath'] + 'al_blast.sum'
-    align_args['dist_file'] = args['outpath'] + '/distances.txt'
-    al_align.main(align_args)
+    if len(args['idist']) == 1:
+        align_args['idist'] = args['idist'][0]
+        align_args['dist_file'] = args['outpath'] + '/distances.txt'
+        al_align.main(align_args)
+    else:
+        for dist in args['idist']:
+            align_args['idist'] = dist
+            align_args['outpath'] =  args['outpath'] + '/' + str(dist) + '/'
+            align_args['dist_file'] = args['outpath'] + '/distances.txt'
+            al_align.main(align_args)
+
 
 if __name__ == '__main__':
     main()
