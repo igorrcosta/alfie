@@ -250,21 +250,6 @@ def write_seqs(outpath, seq_dict, minseqs, minsize, vprint, chromo_sep=False):
     for al in seq_dict:
         seqs = seq_dict[al]
         new_file = outpath + al + '.fasta'
-#        if chromo_sep:
-#            chromo = ''
-#            for sp in seqs:
-#                if not chromo:
-#                    chromo = seqs[sp][1]
-#                    species_chromo = sp
-#                elif chromo != seqs[sp][1]:
-#                    vprint('al %s chromossomes differ between species: using %s chromo.'%(al, species_chromo))
-#                    break
-#            old_seqs = seqs
-#            for sp in old_seqs:
-#                seqs[sp] = old_seqs[sp][0]
-#            new_file = args['outpath'] + al + '.' + chromo + '.fasta'
-#        else:
-#            new_file = args['outpath'] + al + '.fasta'
         records = []
         filter = True
         if len(seqs) < minseqs:
@@ -320,26 +305,26 @@ def run_clustalw(outpath, fasta_files):
     clean = open(clustalw_log, 'w')
     clean.close()
     for fp in fasta_files:
-	try:
+        try:
             command = 'clustalw2 -INFILE=' + outpath+fp +\
-                ' -ALIGN -OUTPUT=FASTA -OUTFILE=' + outpath+fp.split('/')[-1].replace('.fasta', '.aln')
+                      ' -ALIGN -OUTPUT=FASTA -OUTFILE=' + outpath+fp.split('/')[-1].replace('.fasta', '.aln')
             with open(clustalw_log, 'a') as log:
                 log.write(fp + ' ' + command)
                 a = Popen(shlex.split(command), stdout=log, stderr=log)
                 a.wait()
             aligned_files.append(fp.split('/')[-1].replace('.fasta', '.aln'))
-	except OSError:
-	    try:
+        except OSError:
+            try:
                 command = 'clustalw -INFILE=' + outpath+fp +\
-                    ' -ALIGN -OUTPUT=FASTA -OUTFILE=' + outpath+fp.split('/')[-1].replace('.fasta', '.aln')
+                          ' -ALIGN -OUTPUT=FASTA -OUTFILE=' + outpath+fp.split('/')[-1].replace('.fasta', '.aln')
                 with open(clustalw_log, 'a') as log:
                     log.write(fp + ' ' + command)
                     a = Popen(shlex.split(command), stdout=log, stderr=log)
                     a.wait()
                 aligned_files.append(fp.split('/')[-1].replace('.fasta', '.aln'))
-	    except OSError:
-		print 'Clustalw not found'
-		raise
+            except OSError:
+		        print 'Clustalw not found'
+		        raise
     return aligned_files
                 
 def make_nexus(path, aligned_files, min_align_size, pick, nogaps, vprint):
@@ -375,7 +360,7 @@ def make_nexus(path, aligned_files, min_align_size, pick, nogaps, vprint):
                 alns.append(random_element)
         else:
             size_dict[infile] = size
-        nexus_files.append(outfile)
+            nexus_files.append(outfile)
     map(alns.remove, removed_alns)
     vprint(str(len(alns)), 'filtered files.')
     sizes = []
@@ -396,7 +381,6 @@ def join_nexus_by_chromo(path, aligned_files, min_align_size, nogaps, vprint):
         join_nexus(path, sizes, nexus_files, 'all.%s.nexus'%chromo)
 
 def join_nexus(path, sizes, nexus_files, outfile='all.nexus'):
-    print nexus_files, sizes
     soma_old = 0
     soma = 0
     append = '''
