@@ -110,9 +110,7 @@ def main():
             blast_args[k] = blast_args[k].replace('*queryname*', blast_args['query'].split('/')[-1])
     al_blast.main(blast_args)
     align_args = deepcopy(args)
-    align_args['join'] = False
     align_args['filter'] = False
-    align_args['nexus'] = False
     align_args['chromo_sep'] = False
     align_args['sum'] =  args['outpath'] + 'al_blast.sum'
     if len(args['idist']) == 1:
