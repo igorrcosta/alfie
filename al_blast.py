@@ -22,6 +22,7 @@ from subprocess import Popen
 from shlex import split as ssplit
 import uuid
 import pickle
+from tempfile import NamedTemporaryFile
 
 def argument_parser():
     '''al_blast.py'''
@@ -88,33 +89,32 @@ def main(args):
     except:
 	vprint('Can\'t create outfile.\n')
 	raise
-    try:
-	tmp = str(uuid.uuid4()) #Temporary query with unique filename, will be deleted at the end.
-        vprint('Temporary file: ' + tmp + '\n')
-	o = open(tmp, 'w')
-	o.close()
-    except:
-        vprint('Can\'t create temporary file.\n')
-        raise
 
     #Initiating variables
     excluded_als = []
     excluded_last_run = 0
     best_hits = {} #best_hits = {genome_db:{al_id:(subj_name, subj_start, subj_end)}}
     for db in args['blast_database']: #Main loop, run for every genome.
+        try:
+            tmp = NamedTemporaryFile(delete=False) #Temporary query with unique filename, will be deleted at the end.
+	    tmp.close()
+        except:
+            vprint('Can\'t create temporary file.\n')
+            raise
         #Save all ALs, except those in excluded_als list, in the temp file.
-        all_als = create_query(args['query'], tmp, args['border'], excluded_als) 
+        all_als = create_query(args['query'], tmp.name, args['border'], excluded_als) 
         vprint(str(len(all_als)) + ' putative ALs.\n Runing blast against ' + db + '\n')
         #Run megablast using the temp query against "db".
-        run_blast(db, tmp, args['blastm8'])
+        run_blast(db, tmp.name, args['blastm8'])
         #Update excluded_als with all ALs that failed id, coverage or duplication filters. Save best hits.
         excluded_als, best_hits[db] = read_m8(args, all_als, excluded_als, vprint, db) 
         vprint(str(len(excluded_als) - excluded_last_run) + ' ALs have been excluded against ' + db.split('/')[-1] + ' database.\n')
 	excluded_last_run = len(excluded_als)
+        tmp.close()
+	os.unlink(tmp.name) #Deletes temporary query file.
     #Writing output
     final_als = create_output(args, excluded_als) #Save the final filtered set of ALs in fasta format.
     create_sum(args, best_hits, final_als) #save a tabular file with a sumary of the blast searchs.
-    remove_temp(tmp) #exclude tmp file
     return final_als, best_hits
 
 def create_sum(args, best_hits, final_als):
