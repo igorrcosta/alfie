@@ -28,7 +28,7 @@ def argument_parser(hlp=False):
                         help = 'Path to the fasta files with the genomes.')
     parser.add_argument('-o', '--outpath', nargs = '?', type = str, default = default_out,\
                         dest = 'outpath', help = 'Path where the ALs will be saved.\n(default: %(default)s)')
-    parser.add_argument('-l', '--log', nargs = '?', type = str, default = 'al_finder.log',\
+    parser.add_argument('-l', '--log', nargs = '?', type = str, default = 'alfie.log',\
                         dest = 'log', help = 'Log file. (default: %(default)s)')
     parser.add_argument('-f', '--skip_formatdb', action = 'store_true', dest = 'skip_formatdb', help = 'Skip making BLAST databases, look for BLAST databases in the output folder (eg.: 0.db.nsq).')
     parser.add_argument('--locus_length', nargs = '?', type = int, default = 1000,\
@@ -82,7 +82,7 @@ def main():
         for n in range(len(args['genomes'])):
             if [str(n), 'db'] not in [f.split('.')[:2] for f in os.listdir(args['outpath']) if f.split('.')[-1] == 'nsq']:
                 print 'BLAST databases not found'
-                raise
+                raise OSError
     if args['outpath'][-1] != '/':
         args['outpath'] += '/'
     finder_args = deepcopy(args)
@@ -120,7 +120,11 @@ def main():
     else:
         for dist in args['idist']:
             align_args['idist'] = dist
-            align_args['outpath'] =  args['outpath'] + '/' + str(dist) + '/'
+            align_args['outpath'] =  args['outpath'] + str(dist) + '/'
+            try:
+                os.mkdir(align_args['outpath'])
+            except OSError:
+                pass
             align_args['dist_file'] = args['outpath'] + '/distances.txt'
             al_align.main(align_args)
 
