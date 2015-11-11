@@ -43,10 +43,10 @@ def main(args):
     	gene_trees(args)
     elif args['concatenated']:
         concatenated_tree(args)
-    elif args['topologies']:
-        topologies(args)
     else:
 	gene_trees(args)
+    if args['topologies']:
+        topologies(args)
 
 def topologies(args):
     path = args['inpath']
@@ -121,7 +121,6 @@ def gene_trees(args):
         model = 'JTT'
     else:
         model = args['model']
-    print os.listdir(path)
     aln_genes = [f for f in os.listdir(path) if ('.nexus' in f and 'all' not in f and '.phy' not in f and '.aln' not in f)]
     for f in aln_genes:
 	alnfile = path + f
