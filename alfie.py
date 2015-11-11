@@ -91,6 +91,7 @@ def main():
     finder_args['genome'] = args['genomes'][0]
     finder_args['circos'] = False
     finder_args['idist'] = 0
+    finder_args['log'] = args['log'] + 'finder.log'
     al_finder.locus(finder_args)
     blast_args = deepcopy(args)
     blast_args['blast_database'] = []
@@ -112,6 +113,7 @@ def main():
     align_args = deepcopy(args)
     align_args['filter'] = False
     align_args['chromo_sep'] = False
+    align_args['log'] = args['log'] + 'align.log'
     align_args['sum'] =  args['outpath'] + 'al_blast.sum'
     if len(args['idist']) == 1:
         align_args['idist'] = args['idist'][0]
