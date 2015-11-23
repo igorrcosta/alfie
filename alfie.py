@@ -78,11 +78,11 @@ def main():
     for a in args:
         if isinstance(args[a], int) and args[a] < 0 and a not in ('idist', 'gdist'):
             raise ValueError('Argument "' + a + '" can\'t receive a negative value.')
-    if args['skip_formatdb']:
-        for n in range(len(args['genomes'])):
-            if [str(n), 'db'] not in [f.split('.')[:2] for f in os.listdir(args['outpath']) if f.split('.')[-1] == 'nsq']:
-                print 'BLAST databases not found'
-                raise OSError
+#    if args['skip_formatdb']:
+#        for n in range(len(args['genomes'])):
+#            if [str(n), 'db'] not in [f.split('.')[:2] for f in os.listdir(args['outpath']) if f.split('.')[-1] == 'nsq']:
+#                print 'BLAST databases not found'
+#                raise OSError
     if args['outpath'][-1] != '/':
         args['outpath'] += '/'
     finder_args = deepcopy(args)
@@ -93,6 +93,7 @@ def main():
     finder_args['idist'] = 0
     finder_args['log'] = args['log'] + 'finder.log'
     al_finder.locus(finder_args)
+    return 0
     blast_args = deepcopy(args)
     blast_args['blast_database'] = []
     for n, infile in enumerate(args['genomes']):

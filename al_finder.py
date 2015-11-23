@@ -99,7 +99,7 @@ def locus(args):
         est_list = gtf_parser(args['est'], args['cds'])
         vprint('\nGTF file found and parsed. \n')
     except:
-	raise
+        raise
         try:
             est_list = info_parser(args['est'])
             vprint('\nInfo file found and parsed.\n')
@@ -112,24 +112,28 @@ def locus(args):
     locus_dict = {}
     regions_total = 0
     for crom in chromosomes:
+        print crom
         est_pairs = est_dict[crom]
-	if args['gene_locus']:
-	    locus_dict[crom] = intersect(est_pairs)
-	else:
+        if args['gene_locus']:
+            locus_dict[crom] = intersect(est_pairs)
+        else:
             chromosome_coords = (args['edist'], chromosome_dict[crom] - args['edist'])
             if len(est_pairs) > 0:
                 locus_dict[crom] = locus_finder(est_pairs, chromosome_coords, args['gdist'])
+                for region in locus_dict[crom]:
+                    print region
             elif args['gdist'] >= 0:
                 locus_dict[crom] = [chromosome_coords]
-	    else:
-	        vprint('no genes in cromossome %s'%crom)
-	        locus_dict[crom] = []
+            else:
+                vprint('no genes in cromossome %s'%crom)
+                locus_dict[crom] = []
         regions_found = len(locus_dict[crom])
         regions_total += regions_found
         if not args['gene_locus']:
             vprint(str(regions_found) + ' anonymous regions found in chromosome ' + crom + '.\n')
         else:
-	    vprint(str(regions_found) + ' coding regions found in chromosome ' + crom + '.\n')
+            vprint(str(regions_found) + ' coding regions found in chromosome ' + crom + '.\n')
+    return 0 
     if not args['gene_locus']:
         vprint(str(regions_total) + ' total anonymous regions found.\n')
     else:
@@ -257,23 +261,23 @@ def gtf_parser(arq, gene = False):
     with open(arq, 'rb') as f:
         handle = csv.reader(f, delimiter='\t')
         l = []
-	if not gene:
+        if not gene:
             for row in handle:
                 try:
                     l.append([row[0], row[3], row[4], row[6]])
                 except:
                     if len(row) < 7:
                         continue
-	else:
-	    for row in handle:
-		try:
-	            if row[1] == 'protein_coding' and row[2] == 'gene':
-		        l.append([row[0], row[3], row[4], row[6]])
+        else:
+            for row in handle:
+                try:
+                    if row[1] == 'protein_coding' and row[2] == 'gene':
+                        l.append([row[0], row[3], row[4], row[6]])
                 except:
                     if len(row) < 7:
                         continue
-		    else:
-			raise
+                    else:
+                        raise
     if not l:
        raise RuntimeWarning('No genes found on GTF file!') 
     return l
@@ -308,7 +312,7 @@ def locus_finder(est_pairs, genome_coords, distance):
     exclude = [] # regions to be excluded from the genome
     dist = abs(distance)
     if distance < 0:
-	dist += 1
+        dist += 1
     for est in est_pairs:
         est = tuple_sort(est)
         exclude.append((max(genome_coords[0], est[0] - dist), est[1] + dist)) 
@@ -316,13 +320,13 @@ def locus_finder(est_pairs, genome_coords, distance):
     exclude = intersect(exclude) #remove intersections
     locus = remove(exclude, genome_coords) #remove exclude coords from genome
     if distance < 0:
-	exclude = locus[:] #exclude all regions too far from genes
+        exclude = locus[:] #exclude all regions too far from genes
         for est in est_pairs:
-	    est = tuple_sort(est)
-	    exclude.append(est) #exclude genes
-	exclude.sort()
-	exclude = intersect(exclude)
-	locus = remove(exclude, genome_coords)
+            est = tuple_sort(est)
+            exclude.append(est) #exclude genes
+        exclude.sort()
+        exclude = intersect(exclude)
+        locus = remove(exclude, genome_coords)
     if locus == [(0,0)]:
         return []
     else:

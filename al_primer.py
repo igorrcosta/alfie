@@ -10,9 +10,7 @@ __contact__ = 'igor.bioinfo@gmail.com'
 import os
 import argparse
 from subprocess import Popen
-import subprocess
 import shlex
-from time import sleep
 
 def argument_parser(hlp = False):
     '''al_primer.py -i seq.fasta
@@ -71,7 +69,6 @@ def primer_run(args):
     command = 'eprimer3'
     args = validate(args)
     for arg, value in args.iteritems():
-        print arg, value
         if value is not False:
             command += ' -'
             command += arg
@@ -121,16 +118,15 @@ def primer3_parser(outfile):
             if result.startswith('# EPRIMER3'):
                 for i in range(10):
                     foward = next(o, '').split()
-		    if len(foward) == 7:
-			print foward
-		        break
-                #foward = next(o, '').split()
+                    if len(foward) == 7:
+                        print foward
+                        break
                 next(o, '')
                 reverse = next(o, '').split()
                 if len(reverse) == 7:
                     yield(foward, reverse)
                 else:
-		    print len(foward), len(reverse)
+                    print len(foward), len(reverse)
                     yield None
 
 def primer2ispcr(outfile, infile, ftail, rtail, recursive = False):
