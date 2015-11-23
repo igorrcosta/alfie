@@ -112,7 +112,6 @@ def locus(args):
     locus_dict = {}
     regions_total = 0
     for crom in chromosomes:
-        print crom
         est_pairs = est_dict[crom]
         if args['gene_locus']:
             locus_dict[crom] = intersect(est_pairs)
@@ -120,13 +119,13 @@ def locus(args):
             chromosome_coords = (args['edist'], chromosome_dict[crom] - args['edist'])
             if len(est_pairs) > 0:
                 locus_dict[crom] = locus_finder(est_pairs, chromosome_coords, args['gdist'])
-                for region in locus_dict[crom]:
-                    print region
             elif args['gdist'] >= 0:
                 locus_dict[crom] = [chromosome_coords]
             else:
                 vprint('no genes in cromossome %s'%crom)
                 locus_dict[crom] = []
+            for region in locus_dict[crom]:
+                print '\t'.join(['hs'+crom, str(region[0]), str(region[1])])
         regions_found = len(locus_dict[crom])
         regions_total += regions_found
         if not args['gene_locus']:
