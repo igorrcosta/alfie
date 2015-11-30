@@ -127,6 +127,7 @@ def main(args):
         if args['pick']:
             assert len(nexus_files) <= args['pick']
         join_nexus(args['outpath'], sizes, nexus_files)
+        join_fasta(args['outpath'], sizes, nexus_files)
         with open(args['outpath'] + 'sample.log', 'w') as sample_file:
             for n in nexus_files:
                 sample_file.write(n + '\n')
@@ -367,6 +368,20 @@ def make_nexus(path, aligned_files, min_align_size, pick, nogaps, vprint):
     for f in sorted(alns):
         sizes.append(size_dict[f])
     return sizes, nexus_files
+
+def join_fasta(path, sizes, aligned_files, outfile='all.fasta'):
+    aligned_files.sort()
+    with open(path + outfile, 'w') as fasta_out:
+        for f in aligned_files:
+            print f
+            f = f.replace('.nexus', '.aln')
+            f_id = f.split('.')[0]
+            with open(path + f, 'r') as fasta:
+                for l in fasta:
+                    if l.startswith('>'):
+                        l = '>' + f_id + '_' + l[1:]
+                    fasta_out.write(l)
+
 
 def join_nexus_by_chromo(path, aligned_files, min_align_size, nogaps, vprint):
     chromo_dict = {}
