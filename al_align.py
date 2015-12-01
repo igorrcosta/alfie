@@ -127,7 +127,8 @@ def main(args):
         if args['pick']:
             assert len(nexus_files) <= args['pick']
         join_nexus(args['outpath'], sizes, nexus_files)
-        join_fasta(args['outpath'], sizes, nexus_files)
+        join_fasta(args['outpath'], nexus_files)
+        make_phylip(args['outpath'], nexus_files)
         with open(args['outpath'] + 'sample.log', 'w') as sample_file:
             for n in nexus_files:
                 sample_file.write(n + '\n')
@@ -369,11 +370,10 @@ def make_nexus(path, aligned_files, min_align_size, pick, nogaps, vprint):
         sizes.append(size_dict[f])
     return sizes, nexus_files
 
-def join_fasta(path, sizes, aligned_files, outfile='all.fasta'):
+def join_fasta(path, aligned_files, outfile='all.fasta'):
     aligned_files.sort()
     with open(path + outfile, 'w') as fasta_out:
         for f in aligned_files:
-            print f
             f = f.replace('.nexus', '.aln')
             f_id = f.split('.')[0]
             with open(path + f, 'r') as fasta:
@@ -382,6 +382,41 @@ def join_fasta(path, sizes, aligned_files, outfile='all.fasta'):
                         l = '>' + f_id + '_' + l[1:]
                     fasta_out.write(l)
 
+def make_phylip(path, nexus_files, concat_outfile='all.phylip'):
+    nexus_files.sort()
+    with open(path + concat_outfile, 'w') as out:
+        for f in nexus_files:
+            f = f.replace('.nexus', '.aln')
+            outfile = '.'.join(f.split('.')[:-1]) + '.phylip'
+	    seq = fasta2phylip(path+f, path+outfile)
+            out.write(seq)
+
+def fasta2phylip(infile, outfile): 
+    al_id = infile.split('.')[0].split('/')[-1]
+    seqs = []
+    with open(infile, 'r') as fasta:
+        seq = ''
+        sp_ids = []
+        for l in fasta:
+            if l.startswith('>'):
+                sp_ids.append('{}-AL'.format(l.strip()[1:11]))
+                #sp_ids.append('{}-AL{}'.format(l.strip()[1:11], al_id))
+                if seq:
+                    seqs.append(seq)
+                seq = ''
+            else:
+                seq += l.strip()
+        seqs.append(seq)
+    lines = []
+    with open(outfile, 'w') as out:
+        first_line ='\n {}     {}\n\n'.format(len(sp_ids), len(seqs[0])) 
+        out.write(first_line)
+        lines.append(first_line)
+        for n, sp in enumerate(zip(sp_ids, seqs)):
+            line = sp[0]+'^'+str(n)+'\n'+ sp[1] + '\n'
+            out.write(line)
+            lines.append(line)
+    return ''.join(lines)
 
 def join_nexus_by_chromo(path, aligned_files, min_align_size, nogaps, vprint):
     chromo_dict = {}
