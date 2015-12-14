@@ -15,7 +15,7 @@
   3.	[Testing your instalation](#2.3)
 3. [Quick Run](#3)
 4. [Advanced Parameters](#4)
-5. [Citing Us](#5)
+5. [Citing Us](#6)
 
 
 
@@ -117,4 +117,4 @@ Flag                 | Description
 
 If you use this program on your analysis, please cite the following paper:
 
-Costa IR, Prosdocimi F, Jennings WB (2015). in silico Phylogenomics Comes of Age:  Using Bioinformatic Algorithms to Discover Evolutionary Markers in Whole Genome Datasets. Manuscript in preparation.
+Costa IR, Prosdocimi F, Jennings WB (2015). In silico phylogenomics using complete genomes: a case study on the evolution of hominoids.  Manuscript in review.
