@@ -74,6 +74,8 @@ def argument_parser(hlp = False):
                         dest = 'min_size', help = 'Minimum sequence size.(default: %(default)s)')
     parser.add_argument('--distance_file', nargs = '?', type = str, default = 'al_align.dist',\
                         dest = 'dist_file', help = 'File to save all distances.')
+    parser.add_argument('--parts', nargs = '?', type = int, default = 0,\
+                        dest = 'parts', help = 'Number of parts the locus was spliced.(default: %(default)s)')
     parser.add_argument('-p', '--pick', nargs = '?', type = int,\
                         dest = 'pick', help = 'Pick only N ALs.')
     parser.add_argument('--remove_gaps', action = 'store_true', dest = 'nogaps', help = 'Remove gaps from the final alignment.')
@@ -110,7 +112,7 @@ def main(args):
     nexus_files, sizes = [], []
     args['min_seqs'] = len(args['genomes'])
     filtered_als = filter_al(args, vprint) # Remove ALs too close to each other and filters excluded chromossomes.
-    seqs = read_sum(args['genomes'], args['sum'], filtered_als, vprint, chromo_sep=args['chromo_sep']) #seqs[AL1] = [Homo:Seq_H, Gorilla:Seq_G, Pongo:Seq_P, Pan:Seq_C]
+    seqs = read_sum(args['genomes'], args['sum'], filtered_als, vprint, args['parts'], chromo_sep=args['chromo_sep']) #seqs[AL1] = [Homo:Seq_H, Gorilla:Seq_G, Pongo:Seq_P, Pan:Seq_C]
     separated_files = write_seqs(args['outpath'], seqs, args['min_seqs'], args['min_size'], vprint, chromo_sep=args['chromo_sep'])
     if args['filter']:
         for f in args['filter']:
@@ -137,7 +139,7 @@ def main(args):
 #    if not nexus_files:
 #        nexus_files = [f for f in os.listdir(args['outpath']) if f.endswith('.nexus') and 'all' not in f]
     
-def read_sum(genome_files, sumf, filtered_als, vprint, chromo_sep=False):
+def read_sum(genome_files, sumf, filtered_als, vprint, parts, chromo_sep=False):
     #will open all genomes on memory!!!
     #todo: change to SeqIO.index to improve memory usage OR change BLAST outfile to get the alignments.
     #check pyfaidx
@@ -188,6 +190,27 @@ def read_sum(genome_files, sumf, filtered_als, vprint, chromo_sep=False):
                         seqs[al][genome] = seq
                     else:
                         seqs[al] = {genome:seq}
+    if parts:
+        joined_seqs = {}
+        for al in seqs.keys():
+            al_id = al.split('.')[0]
+            if al_id not in joined_seqs:
+                try:
+                    if chromo_sep:
+                        seq = seqs[al_id+'.1']
+                        for n in range(1, parts):
+                            for genome in seq.keys():
+                                seq[genome] = (seq[genome][0] + seqs[al_id+'.'+str(n+1)][genome][0], seq[genome][1])
+                        joined_seqs[al] = seq
+                    else:
+                        seq = seqs[al_id+'.1']
+                        for n in range(1, parts):
+                            for genome in seq.keys():
+                                seq[genome] += seqs[al_id+'.'+str(n+1)][genome]
+                        joined_seqs[al] = seq
+                except KeyError:
+                    continue #some part was not found
+        seqs = joined_seqs    
     return seqs
 
 def filter_al(args, vprint):
@@ -219,14 +242,14 @@ def filter_al(args, vprint):
     for chromo in sorted(al_dict.keys()):
         al_list = sort_al(al_dict[chromo])
         all_als += len(al_list)
-        if args['excluded'] and chromo in args['excluded']:
+        if args['excluded'] and (chromo in args['excluded']):
             removed_chromo += len(al_list)
             continue
         end = -dist - 1 #don't exclude first al
         last_chromo = ''
         with open(args['dist_file'], 'a') as dist_file:
             for al in al_list: #al = (id, start, end, chromo)
-                if end + dist < al[1]:
+                if end + dist < al[1] or (args['parts'] and ('.1' not in al[0])):
                     if last_chromo == al[3]:
                         dist_file.write('{0}\t{1}\n'.format(al[0], al[1] - end))
                     else:

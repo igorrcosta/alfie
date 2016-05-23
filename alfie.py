@@ -115,6 +115,7 @@ def main():
     align_args['chromo_sep'] = False
     align_args['log'] = args['log'] + 'align.log'
     align_args['sum'] =  args['outpath'] + 'al_blast.sum'
+    align_args['parts'] = 0
     if len(args['idist']) == 1:
         align_args['idist'] = args['idist'][0]
         align_args['dist_file'] = args['outpath'] + '/distances.txt'
