@@ -144,7 +144,7 @@ def create_output(args, excluded):
     with open(args['query'], 'r') as ff:
         with open(args['outfile'], 'w') as out_file:
             for name, seq, none in readfq(ff):
-                al = int(name.split('|')[0].split('_')[1])
+                al = name.split('|')[0].split('_')[1]
                 if al in excluded:
                     continue
                 out_file.write('>' + name + '\n' + seq + '\n')
@@ -159,7 +159,7 @@ def create_query(fasta_file, tmp_file,  border = 0, exclude = []):
         with open(fasta_file, 'r') as ff:
             for name, seq, none in readfq(ff):
                 try:
-                    n = int(name.split('|')[0].split('_')[1])
+                    n = name.split('|')[0].split('_')[1]
                 except:
                     print name + ' is not well formated.'
                     continue
@@ -240,7 +240,7 @@ def read_m8(args, all_ids, excluded = [], vprint = lambda x: None, db = ''):
     with open(m8, 'r') as blast:
         for l in blast:
             total += 1
-            n = int(l.split('|')[0].split('_')[1]) #if "l = >AL_17|1:2221075:2223075", "n = 17"
+            n = l.split('|')[0].split('_')[1] #if "l = >AL_17|1:2221075:2223075", n = 17 or 17.2 if UCE
             identity = float(l.split()[2])
             subj_start = int(l.split()[8])
             subj_end = int(l.split()[9]) 

@@ -88,10 +88,12 @@ def main(args):
                 locus_end = uce_end + locus_length/2
                 locus_seq1 = c.seq[locus_start:uce_start]#Get first half seq from the chromossome
                 locus_seq2 = c.seq[uce_end:locus_end] #Get second half seq from the chromossome
-                locus_seq = locus_seq1 + locus_seq2
                 with open(args['outfile'], 'a') as out: #write the uce to outfile
-                    out.write('>UCE_{}|{}:{}:{}\n{}\n'.format(n,
-                               chromo, locus_start, locus_end, locus_seq))
+                    out.write('>UCE_{}.1|{}:{}:{}\n{}\n'.format(n,
+                               chromo, locus_start, uce_start, locus_seq1))
+                with open(args['outfile'], 'a') as out: #write the uce to outfile
+                    out.write('>UCE_{}.2|{}:{}:{}\n{}\n'.format(n,
+                               chromo, uce_end, locus_end, locus_seq2))
                     n += 1
 
 
