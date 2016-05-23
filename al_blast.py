@@ -87,9 +87,8 @@ def main(args):
         o = open(args['outfile'], 'w') #Final ALs will be saved here (fasta).
         o.close()
     except:
-	vprint('Can\'t create outfile.\n')
-	raise
-
+        vprint('Can\'t create outfile.\n')
+        raise
     #Initiating variables
     excluded_als = []
     excluded_last_run = 0
@@ -109,7 +108,7 @@ def main(args):
         #Update excluded_als with all ALs that failed id, coverage or duplication filters. Save best hits.
         excluded_als, best_hits[db] = read_m8(args, all_als, excluded_als, vprint, db) 
         vprint(str(len(excluded_als) - excluded_last_run) + ' ALs have been excluded against ' + db.split('/')[-1] + ' database.\n')
-	excluded_last_run = len(excluded_als)
+        excluded_last_run = len(excluded_als)
         tmp.close()
 	os.unlink(tmp.name) #Deletes temporary query file.
     #Writing output
@@ -240,46 +239,46 @@ def read_m8(args, all_ids, excluded = [], vprint = lambda x: None, db = ''):
         m8 = m8.replace('*dbname*', db_name(db))
     with open(m8, 'r') as blast:
         for l in blast:
-	    total += 1
+            total += 1
             n = int(l.split('|')[0].split('_')[1]) #if "l = >AL_17|1:2221075:2223075", "n = 17"
             identity = float(l.split()[2])
             subj_start = int(l.split()[8])
             subj_end = int(l.split()[9]) 
-	    coverage = abs(subj_end - subj_start)
-	    subj_name = str(l.split()[1])
+            coverage = abs(subj_end - subj_start)
+            subj_name = str(l.split()[1])
             query_size = int(l.split('|')[1].split(':')[2].split()[0]) -  int(l.split('|')[1].split(':')[1])
             if n not in excluded and query_size*100.0/coverage >= args['cov_cut']: # not already excluded and coverage above cutoff
-		if identity > args['id_cut']: #above identity cutoff, may be duplicated...
+                if identity > args['id_cut']: #above identity cutoff, may be duplicated...
                     if n in low_coverage:
                         low_coverage.remove(n) #found a hit with high coverage
-		    if n in found: #excluded due to duplication (both above identity cutoff)
-			excluded.append(n)
-			duplicated.append(n)
-			best_hits.pop(n)
-		    elif n in low_id: #excluded due to another hit above duplication cutoff
-			excluded.append(n)
-			duplicated.append(n)
-			low_id.remove(n)
-		    else:
-			found.append(n)
+                    if n in found: #excluded due to duplication (both above identity cutoff)
+                        excluded.append(n)
+                        duplicated.append(n)
+                        best_hits.pop(n)
+                    elif n in low_id: #excluded due to another hit above duplication cutoff
+                        excluded.append(n)
+                        duplicated.append(n)
+                        low_id.remove(n)
+                    else:
+                        found.append(n)
                         best_hits[n] = (subj_name, str(subj_start), str(subj_end))
-		elif identity > args['dup_cut']: #above duplication cutoff, might exclude another AL 
+                elif identity > args['dup_cut']: #above duplication cutoff, might exclude another AL 
                     if n in low_coverage:
                         low_coverage.remove(n) #found a hit with high coverage
-		    if n in found: #exclude the high id AL found due to duplication
-		        duplicated.append(n)
-			excluded.append(n)
+                    if n in found: #exclude the high id AL found due to duplication
+                        duplicated.append(n)
+                        excluded.append(n)
                         best_hits.pop(n)
                     elif n not in low_id:
                     	low_id.append(n) #there is a hit above duplication cutoff
-	    elif query_size*100.0/coverage < args['cov_cut']: #not in excluded, but below coverage cutoff
-		low_coverage.append(n)
+                elif query_size*100.0/coverage < args['cov_cut']: #not in excluded, but below coverage cutoff
+                    low_coverage.append(n)
 		
     not_found = []
     for i in all_ids:
         if i not in found:
             excluded.append(i)
-	    not_found.append(i)
+            not_found.append(i)
     vprint(str(len(low_coverage)) + ' excluded due to low coverage.\n')
     vprint(str(len(low_id)) + ' excluded due to low identity.\n')
     vprint(str(len(duplicated)) + ' excluded due to duplication.\n')
