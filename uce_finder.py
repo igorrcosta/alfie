@@ -34,15 +34,14 @@ def argument_parser(hlp=False):
                         dest = 'outfile', help = 'File where the UCEs will be saved.\n(default: %(default)s)')
     parser.add_argument('-l', '--log', nargs = '?', type = str, default = default_log,\
                         dest = 'log', help = 'Log file. (default: %(default)s)')
-    parser.add_argument('--locus_length', nargs = '?', type = int, default = 2000,\
-                        dest = 'length', help = 'Length of the UCEs sequences.\n(default: %(default)s)')
-    parser.add_argument('--max_n', nargs = '?', type = float, default = 0,\
-                        dest = 'max_n', help = 'Maximum percentage of N\'s in the UCE sequence.\n(default: %(default)s)')
-    #parser.add_argument('--inter_distance', nargs = '?', type = int, default = 0,\
-    #                    dest = 'idist', help = 'Minimum distance between UCEs.\n(defaut: %(default)s)')
+    parser.add_argument('--locus_length', nargs = '?', type = int, default = 1000,\
+                        dest = 'length', help = 'Length of the locus sequences.\n(default: %(default)s)')
+    parser.add_argument('--uce_distance', nargs = '?', type = int, default = 0,\
+                        dest = 'uce_dist', help = 'Distance between locus and the beggining of the UCE.\n(defaut: %(default)s)')
     parser.add_argument('-u', '--uce', nargs = '?', type = str, default = None,\
                         dest = 'uce', help = 'File with the UCE coordinates.\n')
     parser.add_argument('-v', '--verbose', action = 'store_true', dest = 'verbose', help = 'Verbose switch.')
+
 
     if hlp:
         args = parser.print_help()
@@ -66,9 +65,8 @@ def main(args):
             return None
     for k in args:
         vprint(k, ' ', str(args[k]), '\n')
-    locus_length = args['length'] #size of the putative UCEs.
-    #idist = args['idist'] #distance between putative UCEs. !!!
-    max_n = floor(locus_length * args['max_n']) #args['max_n'] is the max % of N's
+    locus_length = args['length'] #size of the locus.
+    uce_dist = args['uce_dist'] #distance between the locus and the UCE.
     try:
         o = open(args['outfile'], 'w')
         o.close()
@@ -82,12 +80,18 @@ def main(args):
         print chromo
         if chromo in uce_dict:
             for uce in uce_dict[chromo]:
-                start = int(uce[0])
-                end = int(uce[1])
-                uce_seq = c.seq[start:end] #Get every UCE seq from the chromossome
+                uce_start = int(uce[0]) - uce_dist
+                uce_end = int(uce[1]) + uce_dist
+                #54321uce12345 distance 0, lenght 10
+                #54321_uce_12345 distance 1, lenght 10
+                locus_start = uce_start - locus_length/2
+                locus_end = uce_end + locus_length/2
+                locus_seq1 = c.seq[locus_start:uce_start]#Get first half seq from the chromossome
+                locus_seq2 = c.seq[uce_end:locus_end] #Get second half seq from the chromossome
+                locus_seq = locus_seq1 + locus_seq2
                 with open(args['outfile'], 'a') as out: #write the uce to outfile
                     out.write('>UCE_{}|{}:{}:{}\n{}\n'.format(n,
-                               chromo, start, end, uce_seq))
+                               chromo, locus_start, locus_end, locus_seq))
                     n += 1
 
 
