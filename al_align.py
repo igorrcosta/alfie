@@ -201,13 +201,13 @@ def read_sum(genome_files, sumf, filtered_als, vprint, parts, chromo_sep=False):
                         for n in range(1, parts):
                             for genome in seq.keys():
                                 seq[genome] = (seq[genome][0] + seqs[al_id+'.'+str(n+1)][genome][0], seq[genome][1])
-                        joined_seqs[al] = seq
+                        joined_seqs[al_id] = seq
                     else:
                         seq = seqs[al_id+'.1']
                         for n in range(1, parts):
                             for genome in seq.keys():
                                 seq[genome] += seqs[al_id+'.'+str(n+1)][genome]
-                        joined_seqs[al] = seq
+                        joined_seqs[al_id] = seq
                 except KeyError:
                     continue #some part was not found
         seqs = joined_seqs    
