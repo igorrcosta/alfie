@@ -139,7 +139,7 @@ def main(args):
     
 def read_sum(genome_files, sumf, filtered_als, vprint, chromo_sep=False):
     #will open all genomes on memory!!!
-    #todo: change to SeqIO.index to improve memory usage
+    #todo: change to SeqIO.index to improve memory usage OR change BLAST outfile to get the alignments.
     #check pyfaidx
     #al1 db1 sbj start end
     #al1 db2 sbj start end
