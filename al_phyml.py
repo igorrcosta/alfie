@@ -21,7 +21,7 @@ def argument_parser(hlp = False):
     parser = argparse.ArgumentParser(description = 'Runs phyml for all .aln files in a folder',\
                                      argument_default = None, fromfile_prefix_chars = '@')
     parser.add_argument('-i', '--inpath', nargs = '?', type = str, required = True,\
-                        dest = 'inpath', help = 'Path to the folder with genbank sequences. (default: %(default)s)')
+                        dest = 'inpath', help = 'Path to the folder with aligned sequences. (default: %(default)s)')
     parser.add_argument('-m', '--model', nargs = '?', type = str, default = 'HKY85',\
                         dest = 'model', help = 'Model to use in phyml. (default: %(default)s)')
     parser.add_argument('-p', '--protein', nargs = '?', const = True, default = False,\
@@ -43,8 +43,6 @@ def main(args):
     	gene_trees(args)
     elif args['concatenated']:
         concatenated_tree(args)
-    else:
-	gene_trees(args)
     if args['topologies']:
         topologies(args)
 
@@ -62,6 +60,8 @@ def topologies(args):
 	    raise
         homo_clade = tree.find_clades('Homo').next()
         brother_clade = [c for c in tree.get_path(homo_clade)[-2] if c.name != 'Homo'][0].name
+        #homo_clade = tree.find_clades('hg19').next()
+        #brother_clade = [c for c in tree.get_path(homo_clade)[-2] if c.name != 'hg19'][0].name
         if brother_clade == 'Pan':
             topology = '((H,C),G)'
         elif brother_clade == 'Gorilla':

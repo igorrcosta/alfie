@@ -98,11 +98,11 @@ def al_run():
 if __name__ == '__main__':
     args = argument_parser()
     if args['al_run']:
-	al_run()
+        al_run()
     elif args['infile']:
         if os.path.isdir(args['infile']):
-	    folder_run(args)
+            folder_run(args)
         else:
             nexus2phylip(args['infile'], args['outfile'])
     else:
-	argument_parser(hlp=True)
+        argument_parser(hlp=True)
