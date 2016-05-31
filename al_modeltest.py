@@ -27,7 +27,7 @@ def main(args):
         f = f[:-1]
         print 'Runing modeltest: ', f, str(n+1), '/', str(total)
         n += 1
-        command = 'java -jar /home/igor/Downloads/jmodeltest-2.1.5/jModelTest.jar -d ' + args['inpath'] + f + ' -f -i -g 4 -s 11 -BIC -a' #-DT -AIC -AICc
+        command = 'java -jar ~/alfie/jModelTest.jar -d ' + args['inpath'] + f + ' -f -i -g 4 -s 11 -BIC -a' #-DT -AIC -AICc
         a = com(command)
         result = a[0][-1].split() #test model a c g t kappa titv
         try:
