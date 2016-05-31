@@ -77,7 +77,6 @@ def main(args):
     n = 1 #UCE counter
     for c in SeqIO.parse(args['genome'], 'fasta'): #for every chr
         chromo = c.description.split()[0]
-        print chromo
         if chromo in uce_dict:
             for uce in uce_dict[chromo]:
                 uce_start = int(uce[0]) - uce_dist
