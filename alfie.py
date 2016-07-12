@@ -24,8 +24,10 @@ def argument_parser(hlp=False):
                                      argument_default = None, fromfile_prefix_chars = '@',
                                      formatter_class = argparse.RawTextHelpFormatter)
     parser.add_argument("-h", "--help", action = "help", help = "Show this help message and exit.")
-    parser.add_argument('-i', '--genomes', nargs = '*', type = str, required = True,\
-                        help = 'Path to the fasta files with the genomes.')
+    parser.add_argument('-r', '--reference', nargs = '?', type = str, required = True\
+                        dest = 'outpath', help = 'Path for the FASTA file with the reference (query) genome.\n(default: %(default)s)')
+    parser.add_argument('-i', '--genomes', nargs = '*', type = str,\
+                        help = 'Path to the FASTA files with the other genomes.')
     parser.add_argument('-o', '--outpath', nargs = '?', type = str, default = default_out,\
                         dest = 'outpath', help = 'Path where the ALs will be saved.\n(default: %(default)s)')
     parser.add_argument('-l', '--log', nargs = '?', type = str, default = 'alfie.log',\
@@ -45,7 +47,7 @@ def argument_parser(hlp=False):
                         dest = 'cds', help = 'Only considers the CDS features of GTF files. (default: %(default)s)')
     parser.add_argument('--end_distance', nargs = '?', type = int, default = 10000,\
                         dest = 'edist', help = 'Distance between ALs and the start and end of a chromosome.\n(default: %(default)s)')
-    parser.add_argument('-g', '--gtf', nargs = '?', type = str, required = True,\
+    parser.add_argument('-g', '--gtf', nargs = '?', type = str,\
                         dest = 'est', help = 'GTF File with all genome features coordinates.')
     parser.add_argument('--description', nargs = '?', type = str, default = None,\
                         dest = 'description', help = 'File with the id of all contigs to be analised\nand optionally their size in base pairs.') 
@@ -88,14 +90,14 @@ def main():
     finder_args = deepcopy(args)
     finder_args['outfile'] = args['outpath'] + 'teste.fasta'
     finder_args['description'] = args['description']
-    finder_args['genome'] = args['genomes'][0]
+    finder_args['genome'] = args['reference']
     finder_args['circos'] = False
     finder_args['idist'] = 0
     finder_args['log'] = args['log'] + 'finder.log'
     al_finder.locus(finder_args)
     blast_args = deepcopy(args)
     blast_args['blast_database'] = []
-    for n, infile in enumerate(args['genomes']):
+    for n, infile in enumerate(args['reference'] + args['genomes']):
         outfile = '{}.db'.format(n)
         log = args['outpath'] + '{}.formatdb.log'.format(n)
         blast_args['blast_database'].append(args['outpath'] + outfile)
