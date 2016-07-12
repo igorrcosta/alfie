@@ -33,7 +33,7 @@ Alfie utilises a sequential modular approach, with each step of the pipeline bei
 Many of these steps require external programs, such as BLAST or CLUSTALW. To reduce the complexity of the steps the whole pipeline can be run automatically using the afie.py script.
 
 
-Using as input a single query genome and its associated GTF file, alfie finds all anonymous regions distant from genomic features (>200kb distance, by default) to avoid the effect of genetic linkage. Alternatively, it can also use a list conserved elements coordinates to search for flanking loci. We included the coordinates for 512 vertebrate anchored elements in the human genome <sup>[1](#myfootnote1)</sup>.
+Using as input a single query genome and its associated GTF file, alfie finds all anonymous regions distant from genomic features (>200kb distance, by default) to avoid the effect of genetic linkage. Alternatively, it can also use a list of conserved elements' coordinates to search for flanking loci. We included the coordinates for 512 vertebrate Anchored Elements in the human genome <sup>[1](#myfootnote1)</sup>.
 After the initial anonymous regions have been found, they are split in small pieces (default 1kb). Each piece is searched against subject and query genomes to filter duplications and find orthologous regions in all genomes.
 
 
