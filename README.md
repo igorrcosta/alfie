@@ -33,12 +33,17 @@ Alfie utilises a sequential modular approach, with each step of the pipeline bei
 Many of these steps require external programs, such as BLAST or CLUSTALW. To reduce the complexity of the steps the whole pipeline can be run automatically using the afie.py script.
 
 
-Using as input a single query genome and its associated GTF file, alfie finds all anonymous regions distant from genomic features (>200kb distance, by default) to avoid the effect of genetic linkage.
+Using as input a single query genome and its associated GTF file, alfie finds all anonymous regions distant from genomic features (>200kb distance, by default) to avoid the effect of genetic linkage. Alternatively, it can also use a list conserved elements coordinates to search for flanking loci. We included the coordinates for 512 vertebrate anchored elements in the human genome <sup>[1](#myfootnote1)</sup>.
 After the initial anonymous regions have been found, they are split in small pieces (default 1kb). Each piece is searched against subject and query genomes to filter duplications and find orthologous regions in all genomes.
+
 
 Alfie performs an exhaustive search, i. e., it finds every possible anonymous regions for the specified parameters in the genomes analyzed. Using default parameters and closelly related vertebrate genomes, alfie will usually find 100-1000 anonymous loci.
 Each ortholog group of anonymous region is written in NEXUS, PHYLIP, ALN and FASTA formats. Alfie will also concatenatenate all the alignments into a large file for phylogenomic analysis.
 The package comes with support for running phylogenomics and population genetics software.
+
+<a name="myfootnote1">1</a>: 512 vertebrate AE coordinates source:
+Lemmon AR, Emme SA, Lemmon EM. 2012. Anchored hybrid enrichment for massively
+high-throughput phylogenomics. Syst Biol 61: 727–744.
 
 ###<a name="1.3"></a>1.3.	What to use alfie for?
 
@@ -80,7 +85,7 @@ A successful run will output 42 candidate loci in the test.fasta file, of which 
 To run alfie, you will need a reference genome and gtf file (there are several available at http://www.ensembl.org/info/data/ftp/index.html) and some genomes to compare against the reference.
 Example command line:
 
-`$> python alfie.py –i "reference_genome.fasta" "genome2.fasta" "genome3.fasta" -g "annotation_file.gtf" -o "output_folder"`
+`$> python alfie.py –r "reference_genome.fasta" -i "genome2.fasta" "genome3.fasta" -g "annotation_file.gtf" -o "output_folder"`
 
 Here the ".fasta" represents the path to the genome files in FASTA format, "annotation_file.gtf" is the path to the gtf file and "output_folder" is where the loci will be saved.
 
@@ -94,10 +99,13 @@ While alfie can be executed with good results without any additional configurati
 
 Flag                 | Description
 ---------------------|------------
--i, --genomes	       | Path to the genome files in the FASTA format. The first genome file inserted will be considered the reference genome.
+-r, --reference        | Path to the reference genome FASTA file.
+-i, --genomes	       | Path to the other genome files in the FASTA format.
 -g, --gtf	           | Path to the gtf file relative to the reference genome.
 -o, --outpath	       | Path where all output files will be saved.
--f, --skip_formatdb  | Skip making BLAST databases, use databses fromthe lastrun. Can significantly improve analysis speed.
+-f, --skip_formatdb  | Skip making BLAST databases, use databses from the last run. Can significantly improve analysis speed.
+--uce_coordinate     | File with the conserved elements' coordinates, alfie comes with an example file containing the coordinates for 512 vertebrate anchored elements in the human genome. Necessary for Anchored Loci search.
+--uce_distance       | Distance between the flanking locus and the beggining of the conserved element. Only used for Anchored Loci search.
 --locus_length       | Length of the anonymous loci (default 1000bp). You may increase this length if you are planning to predict primers for these loci.
 --max_n              | Maximum percentage of N's in the AL sequence (default 0%). Increase this if you want to find more loci in a low quality reference genome.
 --inter_distance     | Minimum distance between ALs (defaut 200000bp).
@@ -117,4 +125,4 @@ Flag                 | Description
 
 If you use this program on your analysis, please cite the following paper:
 
-Costa IR, Prosdocimi F, Jennings WB (2016). In silico phylogenomics using complete genomes: a case study on the evolution of hominoids. Manuscript in preparation.
+Costa IR, Prosdocimi F, Jennings WB. 2016. In silico phylogenomics using complete genomes: a case study on the evolution of hominoids. Genome Research. Manuscript in preparation.
