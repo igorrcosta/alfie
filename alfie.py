@@ -14,6 +14,7 @@ import al_finder
 import al_formatdb
 import al_blast
 import al_align
+import uce_finder
 from copy import deepcopy
 
 def argument_parser(hlp=False):
@@ -24,35 +25,40 @@ def argument_parser(hlp=False):
                                      argument_default = None, fromfile_prefix_chars = '@',
                                      formatter_class = argparse.RawTextHelpFormatter)
     parser.add_argument("-h", "--help", action = "help", help = "Show this help message and exit.")
+    parser.add_argument('-r', '--reference', nargs = '?', type = str, required = True,\
+                        help = 'Path to the FASTA file with the reference (query) genome.')
     parser.add_argument('-i', '--genomes', nargs = '*', type = str, required = True,\
-                        help = 'Path to the fasta files with the genomes.')
+                        help = 'Paths to the FASTA files with the other genomes.')
+    parser.add_argument('-g', '--gtf', nargs = '?', type = str, \
+                        dest = 'est', help = 'GTF File with all reference genome features coordinates. Only used for Anonymous Loci.')
     parser.add_argument('-o', '--outpath', nargs = '?', type = str, default = default_out,\
                         dest = 'outpath', help = 'Path where the ALs will be saved.\n(default: %(default)s)')
     parser.add_argument('-l', '--log', nargs = '?', type = str, default = 'alfie.log',\
                         dest = 'log', help = 'Log file. (default: %(default)s)')
     parser.add_argument('-f', '--skip_formatdb', action = 'store_true', dest = 'skip_formatdb', help = 'Skip making BLAST databases, look for BLAST databases in the output folder (eg.: 0.db.nsq).')
+    parser.add_argument('--uce_distance', nargs = '?', type = int, default = 0,\
+                        dest = 'uce_distance', help = 'Distance between locus and the beggining of the UCE. Only used for Anchored Loci search.\n(defaut: %(default)s)')
+    parser.add_argument('--uce_coordinate', nargs = '?', type = str, default = None,\
+                        dest = 'uce_coordinate', help = 'File with the UCE coordinates. Necessary for Anchored Loci search.\n')
     parser.add_argument('--locus_length', nargs = '?', type = int, default = 1000,\
                         dest = 'length', help = 'Length of the ALs sequences.\n(default: %(default)s)')
     parser.add_argument('--max_n', nargs = '?', type = float, default = 0,\
-                        dest = 'max_n', help = 'Maximum percentage of N\'s in the AL sequence.\n(default: %(default)s)')
+                        dest = 'max_n', help = 'Maximum percentage of N\'s in the AL sequence. Only used for Anonymous Loci. \n(default: %(default)s)')
     parser.add_argument('--inter_distance', nargs = '*', type = int, default = [200000],\
                         dest = 'idist', help = 'Minimum distance between ALs. If more than one distance is given, they will be saved in separated folders.\n(defaut: %(default)s)')
     parser.add_argument('--gene_distance', nargs = '?', type = int, default = 200000,\
-                        dest = 'gdist', help = 'Minimum (or maximum, if negative) distance between ALs and genes.\n(defaut: %(default)s)')
+                        dest = 'gdist', help = 'Minimum (or maximum, if negative) distance between Anonymous Loci and genes.\n(defaut: %(default)s)')
     parser.add_argument('--gene_locus', action = 'store_true', dest = 'gene_locus',\
                         help = 'Find coding regions loci.\n(defaut: %(default)s)')
     parser.add_argument('--cds', action = 'store_true', default = False,\
                         dest = 'cds', help = 'Only considers the CDS features of GTF files. (default: %(default)s)')
     parser.add_argument('--end_distance', nargs = '?', type = int, default = 10000,\
                         dest = 'edist', help = 'Distance between ALs and the start and end of a chromosome.\n(default: %(default)s)')
-    parser.add_argument('-g', '--gtf', nargs = '?', type = str, required = True,\
-                        dest = 'est', help = 'GTF File with all genome features coordinates.')
     parser.add_argument('--description', nargs = '?', type = str, default = None,\
                         dest = 'description', help = 'File with the id of all contigs to be analised\nand optionally their size in base pairs.') 
     parser.add_argument('-v', '--verbose', action = 'store_true', dest = 'verbose', help = 'Verbose switch.')
     parser.add_argument('--duplication_cutoff', nargs = '?', type = int, default = 50,\
-                        dest = 'dup_cut', help = 'ALs with 2 hits with identity higher than this will\
-                        be considered duplicated.\n(default: %(default)s)')  
+                        dest = 'dup_cut', help = 'ALs with 2 hits with identity higher than this will be considered duplicated.\n(default: %(default)s)')  
     parser.add_argument('--identity_cutoff', nargs = '?', type = int, default = 90,\
                         dest = 'id_cut', help = 'ALs with a identity higher than this will be considered homologous.\n(default: %(default)s)')
     parser.add_argument('--coverage_cutoff', nargs = '?', type = int, default = 90,\
@@ -85,14 +91,24 @@ def main():
                 raise OSError
     if args['outpath'][-1] != '/':
         args['outpath'] += '/'
-    finder_args = deepcopy(args)
-    finder_args['outfile'] = args['outpath'] + 'teste.fasta'
-    finder_args['description'] = args['description']
-    finder_args['genome'] = args['genomes'][0]
-    finder_args['circos'] = False
-    finder_args['idist'] = 0
-    finder_args['log'] = args['log'] + 'finder.log'
-    al_finder.locus(finder_args)
+    if args['uce_coordinate']: #uce_finder
+        finder_args = deepcopy(args)
+        finder_args['genome'] = args['reference']
+        finder_args['outfile'] = args['outpath'] + 'candidate.fasta'
+        finder_args['log'] = args['log'] + 'finder.log'
+        finder_args['uce_dist'] = args['uce_distance']
+        finder_args['uce'] = args['uce_coordinate']
+        uce_finder.main(finder_args)
+    else: #al_finder
+        finder_args = deepcopy(args)
+        finder_args['outfile'] = args['outpath'] + 'candidate.fasta'
+        finder_args['description'] = args['description']
+        finder_args['genome'] = args['reference']
+        finder_args['circos'] = False
+        finder_args['idist'] = 0
+        finder_args['log'] = args['log'] + 'finder.log'
+        al_finder.locus(finder_args)
+    args['genomes'].insert(0, args['reference']) #insert reference genome back into the genome list.
     blast_args = deepcopy(args)
     blast_args['blast_database'] = []
     for n, infile in enumerate(args['genomes']):
@@ -101,7 +117,7 @@ def main():
         blast_args['blast_database'].append(args['outpath'] + outfile)
         if not args['skip_formatdb']:
             al_formatdb.run_formatdb(infile, outfile, args['outpath'], log)
-    blast_args['query'] = args['outpath'] + 'teste.fasta'
+    blast_args['query'] = finder_args['outfile']
     blast_args['outfile'] = args['outpath'] + 'blasted.fasta'
     blast_args['blastm8'] = args['outpath'] + '*queryname**dbname*.m8'
     blast_args['log'] = args['outpath'] + '*queryname*.log' 
@@ -114,8 +130,11 @@ def main():
     align_args['filter'] = False
     align_args['chromo_sep'] = False
     align_args['log'] = args['log'] + 'align.log'
-    align_args['sum'] =  args['outpath'] + 'al_blast.sum'
-    align_args['parts'] = 0
+    align_args['sum'] =  blast_args['sum']
+    if args['uce_coordinate']:
+        align_args['parts'] = 2
+    else:
+        align_args['parts'] = 0
     if len(args['idist']) == 1:
         align_args['idist'] = args['idist'][0]
         align_args['dist_file'] = args['outpath'] + '/distances.txt'
