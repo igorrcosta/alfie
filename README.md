@@ -41,7 +41,7 @@ Alfie performs an exhaustive search, i. e., it finds every possible anonymous re
 Each ortholog group of anonymous region is written in NEXUS, PHYLIP, ALN and FASTA formats. Alfie will also concatenatenate all the alignments into a large file for phylogenomic analysis.
 The package comes with support for running phylogenomics and population genetics software.
 
-<a name="myfootnote1">1</a>: 512 vertebrate AE coordinates source:
+<a name="myfootnote1"><sup>1</sup></a>: 512 vertebrate AE coordinates source:
 Lemmon AR, Emme SA, Lemmon EM. 2012. Anchored hybrid enrichment for massively
 high-throughput phylogenomics. Syst Biol 61: 727–744.
 
