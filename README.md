@@ -1,7 +1,7 @@
 # **alfie**
-##ALFIE (Anonymous/Anchor Loci FIndEr):  software package for the acquisition of anonymous or anchor (AE/UCE) loci datasets!
+##ALFIE: python package for the acquisition of anonymous or anchor loci datasets!
 
-####Thank you for downloading Alfie!
+####Thank you for downloading alfie!
 
 ###SUMMARY
 
@@ -25,17 +25,17 @@
 
 ###<a name="1.1"></a>1.1.	What is alfie?
 
-Alfie is an open-source python package containing a pipeline that searches 
-complete genome sequences for the maximum number of ideal anonymous loci 
-(i.e., single-copy, neutral, and independent loci) or for anchor (AE/UCE) 
-loci that also meet the single-copy and independence assumptions. It also 
-extracts orthologous sequences from other genomes, performs multiple sequence 
-alignments, and outputs ready-to-analyze datasets in commonly used formats.
+Alfie (Anonymous/Anchor Loci FIndEr) is an open-source python package 
+containing a pipeline that searches complete genome sequences for the maximum 
+number of ideal anonymous loci (i.e., single-copy, neutral, and independent 
+loci) or for anchor (AE/UCE) loci that also meet the single-copy and 
+independence assumptions. It also extracts orthologous sequences from other 
+genomes, performs multiple sequence alignments, and outputs ready-to-analyze 
+datasets in commonly used formats.
 
 These anonymous loci datasets are ideal for phylogenomic studies that use 
 multi-locus coalescent analyses (e.g., phylogeography). AE- and UCE-anchor 
 loci are best for phylogenomic studies involving moderate to deep divergences.
-
 The goal of alfie is to be a complete, user-friendly, and flexible 
 phylogenomic loci dataset-generating software.
 
@@ -45,7 +45,6 @@ phylogenomic loci dataset-generating software.
 Alfie utilizes a sequential modular approach, with each step of the pipeline 
 being stored in a single module that can be executed with greater flexibility 
 in standalone mode.
-
 Many of these steps require external programs, such as BLAST or CLUSTALW. To 
 reduce the complexity of the steps the whole pipeline can be run automatically 
 using the afie.py script. 
@@ -60,12 +59,13 @@ its associated GTF file. The user must also input one complete genome sequence
 (can be un-annotated) for each individual or species in the study. Alfie finds 
 all anonymous regions distant from genomic features (> 200 kb distance, by 
 default) to avoid the effects of direct or indirect natural selection (i.e., 
-to satisfy the neutrality assumption). The program also uses a distance filter 
-(> 200 kb distance, by default) to select loci that are likely to be 
-genealogically independent of other sampled loci (i.e., satisfy the 
-independent loci assumption). Alfie performs an exhaustive search (i.e., it 
-finds every possible anonymous regions for the specified parameters in 
-the genomes analyzed). 
+to satisfy the neutrality assumption). 
+
+The program also uses a distance filter (> 200 kb distance, by default) to 
+select loci that are likely to be genealogically independent of other sampled 
+loci (i.e., satisfy the independent loci assumption). Alfie performs an 
+exhaustive search (i.e., it finds every possible anonymous regions for the 
+specified parameters in the genomes analyzed). 
 
 After the initial target regions have been found, they are split in small loci 
 (default 1 kb). Each piece is searched against subject and query genomes to 
