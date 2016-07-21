@@ -206,4 +206,4 @@ Flag                 | Description
 
 If you use this program, please cite the following paper:
 
-Costa IR, Prosdocimi F, Jennings WB. 2016. In silico phylogenomics using complete genomes: a case study on the evolution of hominoids. Genome Research accepted manuscript.
+[Costa IR, Prosdocimi F, Jennings WB. 2016. In silico phylogenomics using complete genomes: a case study on the evolution of hominoids. Genome Res.  Published in Advance July 19, 2016, doi:10.1101/gr.203950.115](http://genome.cshlp.org/content/early/2016/07/19/gr.203950.115.abstract)
