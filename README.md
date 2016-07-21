@@ -128,8 +128,7 @@ selection, such as genes and regulatory elements.
 
 ###<a name="2.1"></a>2.1.	Downloading alfie
 
-Users can download and install the entire source code from github at the 
-address https://github.com/igorrcosta/alfie/archive/master.zip or download the 
+Users can download and install the [entire source code from github](https://github.com/igorrcosta/alfie/archive/master.zip) or download the 
 docker container with all the dependencies included (available soon). To 
 install, simply extract the donwloaded repository file in a folder.
 
@@ -158,7 +157,7 @@ test.fasta file, of which only loci 11, 27 and 40 will be selected and aligned.
 ##<a name="3"></a> 3. Quick Run
 
 To run alfie, you will need a reference genome and GTF file (there are several 
-available at http://www.ensembl.org/info/data/ftp/index.html) and some genomes 
+available at [Ensembl](http://www.ensembl.org/info/data/ftp/index.html)) and some genomes 
 to compare against the reference. Example command line:
 
 `$> python alfie.py –r "reference_genome.fasta" -i "genome2.fasta" "genome3.fasta" -g "annotation_file.gtf" -o "output_folder"`
