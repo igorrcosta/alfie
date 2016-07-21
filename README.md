@@ -137,11 +137,11 @@ install, simply extract the donwloaded repository file in a folder.
 
 Working versions for each required program can be found on the following links:
 
-* Blast:			http://blast.ncbi.nlm.nih.gov/Blast.cgi?CMD=Web&PAGE_TYPE=Blast Docs&DOC_TYPE=Download
-* ClustalW: 		http://sourceforge.net/projects/mira-assembler/
-* PhyML:		http://www.atgc-montpellier.fr/phyml/binaries.php
-* ModelTest:		https://code.google.com/p/jmodeltest2/
-* Biopython:		http://biopython.org/wiki/Download
+* [Blast](http://blast.ncbi.nlm.nih.gov/Blast.cgi?CMD=Web&PAGE_TYPE=Blast Docs&DOC_TYPE=Download)
+* [ClustalW](http://www.clustal.org/download/current/)
+* [PhyML](http://www.atgc-montpellier.fr/phyml/binaries.php)
+* [ModelTest](https://code.google.com/p/jmodeltest2/)
+* [Biopython](http://biopython.org/wiki/Download)
 
 ###<a name="2.3"></a>2.3. Testing your installation
 
