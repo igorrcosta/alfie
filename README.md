@@ -148,7 +148,7 @@ You can test your installation by running alfie on the human and chimpanzee Y
 Chromosomes’ test case. To do that, go to the alfie folder and run the 
 following command:
 
-`$>python alfie.py -i test/homo_y.fasta test/pan_y.fasta -g test/y.gtf`
+`$>python alfie.py -r test/homo_y.fasta -i test/pan_y.fasta -g test/y.gtf`
 
 This command might take more than a minute to finish, depending on your 
 computer speed. A successful run will output 42 candidate loci in the 
