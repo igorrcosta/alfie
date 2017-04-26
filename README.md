@@ -1,9 +1,9 @@
 # **alfie**
-##ALFIE: python package for the acquisition of anonymous or anchor loci datasets!
+## ALFIE: python package for the acquisition of anonymous or anchor loci datasets!
 
-####Thank you for downloading alfie!
+#### Thank you for downloading alfie!
 
-###SUMMARY
+### SUMMARY
 
 1. [Introduction](#1)
   1. [What is alfie?](#1.1)
@@ -21,9 +21,9 @@
 
 
 
-##<a name="1"></a>1.	Introduction
+## <a name="1"></a>1.	Introduction
 
-###<a name="1.1"></a>1.1.	What is alfie?
+### <a name="1.1"></a>1.1.	What is alfie?
 
 Alfie (Anonymous/Anchor Loci FIndEr) is an open-source python package 
 containing a pipeline that searches complete genome sequences for the maximum 
@@ -40,7 +40,7 @@ The goal of alfie is to be a complete, user-friendly, and flexible
 phylogenomic loci dataset-generating software.
 
 
-###<a name="1.2"></a>1.2.	How it works?
+### <a name="1.2"></a>1.2.	How it works?
 
 Alfie utilizes a sequential modular approach, with each step of the pipeline 
 being stored in a single module that can be executed with greater flexibility 
@@ -52,7 +52,7 @@ using the afie.py script.
 The program contains two main modules: Anonymous loci (AL) finding module and 
 an anchor (AE/UCE) loci finding module.
 
-###<a name="1.2.1"></a>1.2.1	Anonymous loci
+### <a name="1.2.1"></a>1.2.1	Anonymous loci
 
 The AL finding module uses as input a single query genome in FASTA format and 
 its associated GTF file. The user must also input one complete genome sequence 
@@ -80,7 +80,7 @@ species tree analyses).
 The number of output anonymous loci will depend on the two distance filter 
 settings (i.e., longer inter-locus distances = fewer output loci and vice-versa).
 
-###<a name="1.2.2"></a>1.2.2	Anchor loci
+### <a name="1.2.2"></a>1.2.2	Anchor loci
 
 To use the anchor (AE/UCE) loci finding module, the user must input genome 
 sequences (can be un-annotated) for each individual or species in the study. 
@@ -109,7 +109,7 @@ aforementioned formats.
 Lemmon AR, Emme SA, Lemmon EM. 2012. Anchored hybrid enrichment for massively
 high-throughput phylogenomics. Syst Biol 61: 727–744.
 
-###<a name="1.3"></a>1.3.	What to use alfie for?
+### <a name="1.3"></a>1.3.	What to use alfie for?
 
 Alfie was developed to find hundreds to thousands of single-copy, neutral, and 
 independent nuclear markers among whole complete genomes and facilitate 
@@ -124,25 +124,25 @@ extensively studied and annotated, presenting a comprehensive GTF file that
 describes the precise location of the main features targeted by natural 
 selection, such as genes and regulatory elements.
 
-##<a name="2"></a>2.	Installation
+## <a name="2"></a>2.	Installation
 
-###<a name="2.1"></a>2.1.	Downloading alfie
+### <a name="2.1"></a>2.1.	Downloading alfie
 
 Users can download and install the [entire source code from github](https://github.com/igorrcosta/alfie/archive/master.zip) or download the 
 docker container with all the dependencies included (available soon). To 
 install, simply extract the donwloaded repository file in a folder.
 
-###<a name="2.2"></a>2.2.	Installation requirements
+### <a name="2.2"></a>2.2.	Installation requirements
 
 Working versions for each required program can be found on the following links:
 
-* [Blast](http://blast.ncbi.nlm.nih.gov/Blast.cgi?CMD=Web&PAGE_TYPE=Blast Docs&DOC_TYPE=Download)
+* [Blast](ftp://ftp.ncbi.nlm.nih.gov/blast/executables/legacy/2.2.9/)
 * [ClustalW](http://www.clustal.org/download/current/)
 * [PhyML](http://www.atgc-montpellier.fr/phyml/binaries.php)
 * [ModelTest](https://code.google.com/p/jmodeltest2/)
 * [Biopython](http://biopython.org/wiki/Download)
 
-###<a name="2.3"></a>2.3. Testing your installation
+### <a name="2.3"></a>2.3. Testing your installation
 
 You can test your installation by running alfie on the human and chimpanzee Y 
 Chromosomes’ test case. To do that, go to the alfie folder and run the 
@@ -154,7 +154,7 @@ This command might take more than a minute to finish, depending on your
 computer speed. A successful run will output 42 candidate loci in the 
 test.fasta file, of which only loci 11, 27 and 40 will be selected and aligned.
 
-##<a name="3"></a> 3. Quick Run
+## <a name="3"></a> 3. Quick Run
 
 To run alfie, you will need a reference genome and GTF file (there are several 
 available at [Ensembl](http://www.ensembl.org/info/data/ftp/index.html)) and some genomes 
@@ -170,7 +170,7 @@ This command will find several candidade loci in the reference genome, which
 will be stored at a test.fasta file. This candidade loci will be blasted 
 against all genomes and the final loci will be saved in several formats.
 
-##<a name="4"></a> 4. Advanced parameters
+## <a name="4"></a> 4. Advanced parameters
 
 While alfie can be executed with good results without any additional 
 configuration, there are several options that can be implemented in your 
