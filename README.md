@@ -136,7 +136,7 @@ install, simply extract the donwloaded repository file in a folder.
 
 Working versions for each required program can be found on the following links:
 
-* [BLAST](http://ftp.ncbi.nlm.nih.gov/blast/executables/legacy/2.2.9/)
+* [BLAST](https://ftp.ncbi.nlm.nih.gov/blast/executables/legacy/2.2.26/)
 * [ClustalW](http://www.clustal.org/download/current/)
 * [PhyML](http://www.atgc-montpellier.fr/phyml/binaries.php)
 * [ModelTest](https://code.google.com/p/jmodeltest2/)
