@@ -1,5 +1,6 @@
 # **alfie**
-## ALFIE: python package for the acquisition of anonymous or anchor loci datasets!
+## ALFIE: Anonymous Loci Finder
+A python package for the acquisition of anonymous or anchor loci datasets
 
 #### Thank you for downloading alfie!
 
