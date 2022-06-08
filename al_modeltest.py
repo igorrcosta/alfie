@@ -25,7 +25,7 @@ def main(args):
     n = 0
     for f in sorted(file_list):
         f = f[:-1]
-        print 'Runing modeltest: ', f, str(n+1), '/', str(total)
+        print('Runing modeltest: ', f, str(n+1), '/', str(total))
         n += 1
         command = 'java -jar jModelTest.jar -d ' + args['inpath'] + f + ' -f -i -g 4 -s 11 -BIC -a' #-DT -AIC -AICc
         a = com(command)

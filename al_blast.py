@@ -96,7 +96,7 @@ def main(args):
     for db in args['blast_database']: #Main loop, run for every genome.
         try:
             tmp = NamedTemporaryFile(delete=False) #Temporary query with unique filename, will be deleted at the end.
-	    tmp.close()
+            tmp.close()
         except:
             vprint('Can\'t create temporary file.\n')
             raise
@@ -110,7 +110,7 @@ def main(args):
         vprint(str(len(excluded_als) - excluded_last_run) + ' ALs have been excluded against ' + db.split('/')[-1] + ' database.\n')
         excluded_last_run = len(excluded_als)
         tmp.close()
-	os.unlink(tmp.name) #Deletes temporary query file.
+    os.unlink(tmp.name) #Deletes temporary query file.
     #Writing output
     final_als = create_output(args, excluded_als) #Save the final filtered set of ALs in fasta format.
     create_sum(args, best_hits, final_als) #save a tabular file with a sumary of the blast searchs.
@@ -161,7 +161,7 @@ def create_query(fasta_file, tmp_file,  border = 0, exclude = []):
                 try:
                     n = name.split('|')[0].split('_')[1]
                 except:
-                    print name + ' is not well formated.'
+                    print(name + ' is not well formated.')
                     continue
                 if n not in exclude:
                     query.write('>' + name + '\n')
@@ -222,7 +222,7 @@ def run_blast(db, query, m8):
         a = Popen(command)
         a.wait()
     except OSError:
-        print 'blastn not found!'
+        print('blastn not found!')
         raise
 
 def read_m8(args, all_ids, excluded = [], vprint = lambda x: None, db = ''):
@@ -270,10 +270,10 @@ def read_m8(args, all_ids, excluded = [], vprint = lambda x: None, db = ''):
                         excluded.append(n)
                         best_hits.pop(n)
                     elif n not in low_id:
-                    	low_id.append(n) #there is a hit above duplication cutoff
+                        low_id.append(n) #there is a hit above duplication cutoff
                 elif query_size*100.0/coverage < args['cov_cut']: #not in excluded, but below coverage cutoff
                     low_coverage.append(n)
-		
+        
     not_found = []
     for i in all_ids:
         if i not in found:

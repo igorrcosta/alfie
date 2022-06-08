@@ -78,6 +78,9 @@ def argument_parser(hlp=False):
         args = parser.parse_args().__dict__
     return args
 
+def logger(s):
+    print(s)
+
 def main():
     #todo: improve log and verbose.
     args = argument_parser()
@@ -87,11 +90,12 @@ def main():
     if args['skip_formatdb']:
         for n in range(len(args['genomes'])):
             if [str(n), 'db'] not in [f.split('.')[:2] for f in os.listdir(args['outpath']) if f.split('.')[-1] == 'nsq']:
-                print 'BLAST databases not found'
+                print('BLAST databases not found')
                 raise OSError
     if args['outpath'][-1] != '/':
         args['outpath'] += '/'
     if args['uce_coordinate']: #uce_finder
+        logger('starting uce_finder')
         finder_args = deepcopy(args)
         finder_args['genome'] = args['reference']
         finder_args['outfile'] = args['outpath'] + 'candidate.fasta'
@@ -100,6 +104,7 @@ def main():
         finder_args['uce'] = args['uce_coordinate']
         uce_finder.main(finder_args)
     else: #al_finder
+        logger('starting al_finder')
         finder_args = deepcopy(args)
         finder_args['outfile'] = args['outpath'] + 'candidate.fasta'
         finder_args['description'] = args['description']
@@ -116,6 +121,7 @@ def main():
         log = args['outpath'] + '{}.formatdb.log'.format(n)
         blast_args['blast_database'].append(args['outpath'] + outfile)
         if not args['skip_formatdb']:
+            logger(f'running formatdb for genome: {infile}')
             al_formatdb.run_formatdb(infile, outfile, args['outpath'], log)
     blast_args['query'] = finder_args['outfile']
     blast_args['outfile'] = args['outpath'] + 'blasted.fasta'
@@ -125,6 +131,7 @@ def main():
     blast_args['border'] = 0
     for k in [k for k in blast_args.keys() if type(blast_args[k]) == str and 'queryname' in blast_args[k]]:
             blast_args[k] = blast_args[k].replace('*queryname*', blast_args['query'].split('/')[-1])
+    logger('starting blast')
     al_blast.main(blast_args)
     align_args = deepcopy(args)
     align_args['filter'] = False

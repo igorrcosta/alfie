@@ -56,9 +56,9 @@ def topologies(args):
         try:
 	    tree = Phylo.read(path + f, 'newick')
 	except:
-	    print f
+	    print(f)
 	    raise
-        homo_clade = tree.find_clades('Homo').next()
+        homo_clade = next(tree.find_clades('Homo'))
         brother_clade = [c for c in tree.get_path(homo_clade)[-2] if c.name != 'Homo'][0].name
         #homo_clade = tree.find_clades('hg19').next()
         #brother_clade = [c for c in tree.get_path(homo_clade)[-2] if c.name != 'hg19'][0].name
@@ -68,15 +68,15 @@ def topologies(args):
             topology = '((H,G),C)'
         elif brother_clade == None:
             topology = '((C,G),H)'
-	print f.split('.')[0] + '\t' + topology
+	print(f.split('.')[0] + '\t' + topology)
         try:
             hits[brother_clade] += 1
         except:
             assert brother_clade == None
             hits['Out'] += 1
-    print soma, 'trees'
+    print(soma, 'trees')
     for k in hits.keys():
-        print k + ':', hits[k], '('+str((hits[k]*100.0)/soma) + '%)'
+        print(k + ':', hits[k], '('+str((hits[k]*100.0)/soma) + '%)')
 
 def concatenated_tree(args):
     outpath = args['inpath']
@@ -99,10 +99,10 @@ def concatenated_tree(args):
         a = open(outpath + 'log_phyml.txt', 'w')
         a.close()
     except:
-       print 'Was not able to open log_phyml.txt. Check your permissions.'
+       print('Was not able to open log_phyml.txt. Check your permissions.')
        skip_phyml = True
     if skip_phyml:
-       print 'Skiping phylogeny.'
+       print('Skiping phylogeny.')
        return None
     else:
         with open(outpath + 'log_phyml.txt', 'a') as log:
@@ -125,7 +125,7 @@ def gene_trees(args):
     for f in aln_genes:
 	alnfile = path + f
 	phyfile = path + f + '.phy'
-        print f, alnfile
+        print(f, alnfile)
         if args['protein']:
             command = 'nohup phyml -d aa -m %s -b 100 -v 0.0 -c 4 -a 4 -f m -i %s'%(model, phyfile)
         else:

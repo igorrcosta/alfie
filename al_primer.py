@@ -61,7 +61,7 @@ def argument_parser(hlp = False):
     if hlp:
         args = parser.parse_args(['-h'])
     else:
-        print 'Welcome to al_primer!'
+        print('Welcome to al_primer!')
         args = parser.parse_args().__dict__
         args['numreturn'] = args['numreturn'] + 1
     return args
@@ -71,7 +71,7 @@ def primer_run(args):
     command = 'eprimer3'
     args = validate(args)
     for arg, value in args.iteritems():
-        print arg, value
+        print(arg, value)
         if value is not False:
             command += ' -'
             command += arg
@@ -87,7 +87,7 @@ def primer_run(args):
         a = Popen(command)
         a.wait()
     except:
-        print 'Something went wrong with eprimer3!'
+        print('Something went wrong with eprimer3!')
         argument_parser(hlp = True)
         raise
 
@@ -108,8 +108,8 @@ def validate(args):
                        break
                if len(seq) < min_size:
                    args['prange'] =  str(args['maxsize']) + '-' + max_size #max primer size is the lower limit for product size in primer3
-                   print 'Minimun PRANGE parameter is too big. Adjusting to fit seq lenght'
-                   print 'New PRANGE is %s'%args['prange']
+                   print('Minimun PRANGE parameter is too big. Adjusting to fit seq lenght')
+                   print('New PRANGE is %s'%args['prange'])
            break
     return args
 
@@ -122,7 +122,7 @@ def primer3_parser(outfile):
                 for i in range(10):
                     foward = next(o, '').split()
 		    if len(foward) == 7:
-			print foward
+			print(foward)
 		        break
                 #foward = next(o, '').split()
                 next(o, '')
@@ -130,7 +130,7 @@ def primer3_parser(outfile):
                 if len(reverse) == 7:
                     yield(foward, reverse)
                 else:
-		    print len(foward), len(reverse)
+		    print(len(foward), len(reverse))
                     yield None
 
 def primer2ispcr(outfile, infile, ftail, rtail, recursive = False):
@@ -173,7 +173,7 @@ def primer2list(outfile, infile, ftail, rtail):
             simple_record = simple_id + '\t' + seq + '\n'
             srecord_list.append(simple_record)
     with open(outfile[:-4], 'w') as fl:
-        print len(srecord_list), 'sequences had their primers done.'
+        print(len(srecord_list), 'sequences had their primers done.')
         for r in srecord_list:
             fl.write(r)
     #Popen(shlex.split('rm ' + outfile))
@@ -205,7 +205,7 @@ def primer2fasta(outfile, infile, ftail, rtail):
             record_list.append(record)
 
     with open(outfile[:-4], 'w') as fl:
-        print len(record_list), 'sequences had their primers done.'
+        print(len(record_list), 'sequences had their primers done.')
         for r in record_list:
             fl.write(r)
     #Popen(shlex.split('rm ' + outfile))

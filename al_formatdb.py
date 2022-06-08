@@ -54,7 +54,7 @@ def run_formatdb(fasta_file, out_file, out_path, log_file='/dev/null'):
         os.chdir(old_dir)
     except:
         os.chdir(old_dir)
-        print 'Something went wrong with formatdb!'
+        print('Something went wrong with formatdb!')
         raise
 
 

@@ -19,7 +19,6 @@ from Bio import SeqIO
 from Bio import AlignIO
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
-from Bio.Alphabet import IUPAC
 from Bio.Align import MultipleSeqAlignment
 from Bio.AlignIO import _FormatToWriter
 from Bio.AlignIO.NexusIO import NexusWriter
@@ -38,9 +37,8 @@ class NexusWriterInterleaved(NexusWriter):
             raise ValueError("Non-empty sequences are required") 
         minimal_record = "#NEXUS\nbegin data; dimensions ntax=0 nchar=0; " \
                          + "format datatype=%s; end;"  \
-                         % self._classify_alphabet_for_nexus(alignment._alphabet) 
+                         % self._classify_alphabet_for_nexus() 
         n = Nexus.Nexus(minimal_record) 
-        n.alphabet = alignment._alphabet 
         for record in alignment: 
             n.add_sequence(record.id, str(record.seq)) 
         n.write_nexus_data(self.handle, interleave=True) 
@@ -103,7 +101,7 @@ def main(args):
     for k in args:
         vprint(k, ' ', str(args[k]))
     if not args['genomes']:
-        print 'No genomes supplied. Check usage: al_align.py --help'
+        print('No genomes supplied. Check usage: al_align.py --help')
         return
     vprint('#######################')
     if args['outpath'][-1] != '/':
@@ -348,8 +346,8 @@ def run_clustalw(outpath, fasta_files):
                     a.wait()
                 aligned_files.append(fp.split('/')[-1].replace('.fasta', '.aln'))
             except OSError:
-		        print 'Clustalw not found'
-		        raise
+                print('Clustalw not found')
+                raise
     return aligned_files
                 
 def make_nexus(path, aligned_files, min_align_size, pick, nogaps, vprint):
@@ -363,7 +361,8 @@ def make_nexus(path, aligned_files, min_align_size, pick, nogaps, vprint):
             pick = len(alns)
         old_alns = alns
         alns = sample(alns, pick)
-        map(old_alns.remove, alns)
+        for alignment in alns:
+            old_alns.remove(alignment)
     else:
         pick = len(alns)
         assert len(old_alns) == 0
@@ -386,7 +385,8 @@ def make_nexus(path, aligned_files, min_align_size, pick, nogaps, vprint):
         else:
             size_dict[infile] = size
             nexus_files.append(outfile)
-    map(alns.remove, removed_alns)
+    for alignment in removed_alns:
+        alns.remove(alignment) 
     vprint(str(len(alns)), 'filtered files.')
     sizes = []
     for f in sorted(alns):
@@ -411,7 +411,7 @@ def make_phylip(path, nexus_files, concat_outfile='all.phylip'):
         for f in nexus_files:
             f = f.replace('.nexus', '.aln')
             outfile = '.'.join(f.split('.')[:-1]) + '.phylip'
-	    seq = fasta2phylip(path+f, path+outfile)
+            seq = fasta2phylip(path+f, path+outfile)
             out.write(seq)
 
 def fasta2phylip(infile, outfile): 
@@ -495,10 +495,10 @@ prset   thetapr=invgamma(3,0.003) GeneMuPr=uniform(0.5,1.5) BEST=1;
                 seqs = ''
                 for l in nex_in:
                     if l[:-1] == 'matrix':
-                        l = nex_in.next()
+                        l = next(nex_in)
                         while l[:-1] != ';':
                             seqs += l
-                            l = nex_in.next()
+                            l = next(nex_in)
                 nex_out.write(seqs)
         nex_out.write(append)
 
@@ -537,7 +537,6 @@ def fastatonexus(infile, outfile, format_in = 'fasta', format_out = 'nexus', pro
         size = align.get_alignment_length() + gaps
     vprint(infile, 'alignment size', str(size))
     align.sort()
-    align._alphabet = IUPAC.unambiguous_dna
     with open(outfile, 'wb') as out:
         try:
             AlignIO.write(align, out, format_out)
