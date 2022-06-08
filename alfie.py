@@ -121,7 +121,7 @@ def main():
         log = args['outpath'] + '{}.formatdb.log'.format(n)
         blast_args['blast_database'].append(args['outpath'] + outfile)
         if not args['skip_formatdb']:
-            logger(f'running formatdb for genome: {infile}')
+            logger(f'running makeblastdb for genome: {infile}')
             al_formatdb.run_formatdb(infile, outfile, args['outpath'], log)
     blast_args['query'] = finder_args['outfile']
     blast_args['outfile'] = args['outpath'] + 'blasted.fasta'

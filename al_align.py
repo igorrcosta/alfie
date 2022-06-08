@@ -36,8 +36,7 @@ class NexusWriterInterleaved(NexusWriter):
         if columns == 0: 
             raise ValueError("Non-empty sequences are required") 
         minimal_record = "#NEXUS\nbegin data; dimensions ntax=0 nchar=0; " \
-                         + "format datatype=%s; end;"  \
-                         % self._classify_alphabet_for_nexus() 
+                         + "format datatype=dna; end;"  
         n = Nexus.Nexus(minimal_record) 
         for record in alignment: 
             n.add_sequence(record.id, str(record.seq)) 
@@ -115,7 +114,7 @@ def main(args):
     if args['filter']:
         for f in args['filter']:
             separated_files = check_for_duplicates(separated_files, f, vprint)
-    aligned_files = run_clustalw(args['outpath'], separated_files)
+    aligned_files = run_clustal(args['outpath'], separated_files)
     vprint(str(len(separated_files)), ' fasta files.')
     folder = '/'.join(args['outpath'].split('/')[:-1]) + '/'
     aligned_files = [folder + filename for filename in os.listdir(folder) if '.aln' in filename]
@@ -263,9 +262,9 @@ def filter_al(args, vprint):
     return filtered_als
 
 def sort_al(al_list):
-    def c(x, y):
-        return cmp(x[1], y[1])
-    sorted_al = sorted(al_list, cmp = c)
+#    def c(x, y):
+#        return cmp(x[1], y[1])
+    sorted_al = sorted(al_list, key=lambda c: c[1])
     return sorted_al
 
 def write_seqs(outpath, seq_dict, minseqs, minsize, vprint, chromo_sep=False):
@@ -322,31 +321,31 @@ def check_for_duplicates(files, path, vprint, hash=sha1):
                 vprint("Duplicate found: %s and %s" % (full_path, duplicate))
     return files
 
-def run_clustalw(outpath, fasta_files):
+def run_clustal(outpath, fasta_files):
     aligned_files = []
-    clustalw_log = outpath + 'clustalw_log.txt'
-    clean = open(clustalw_log, 'w')
+    clustal_log = outpath + 'clustal_log.txt'
+    clean = open(clustal_log, 'w')
     clean.close()
     for fp in fasta_files:
         try:
-            command = 'clustalw2 -INFILE=' + outpath+fp +\
-                      ' -ALIGN -OUTPUT=FASTA -OUTFILE=' + outpath+fp.split('/')[-1].replace('.fasta', '.aln')
-            with open(clustalw_log, 'a') as log:
+            command = 'clustalo --force -i ' + outpath+fp +\
+                      ' --outfmt=FASTA -o ' + outpath+fp.split('/')[-1].replace('.fasta', '.aln')
+            with open(clustal_log, 'a') as log:
                 log.write(fp + ' ' + command)
                 a = Popen(shlex.split(command), stdout=log, stderr=log)
                 a.wait()
             aligned_files.append(fp.split('/')[-1].replace('.fasta', '.aln'))
         except OSError:
             try:
-                command = 'clustalw -INFILE=' + outpath+fp +\
+                command = 'clustalw2 -INFILE=' + outpath+fp +\
                           ' -ALIGN -OUTPUT=FASTA -OUTFILE=' + outpath+fp.split('/')[-1].replace('.fasta', '.aln')
-                with open(clustalw_log, 'a') as log:
+                with open(clustal_log, 'a') as log:
                     log.write(fp + ' ' + command)
                     a = Popen(shlex.split(command), stdout=log, stderr=log)
                     a.wait()
                 aligned_files.append(fp.split('/')[-1].replace('.fasta', '.aln'))
             except OSError:
-                print('Clustalw not found')
+                print('Clustalo not found')
                 raise
     return aligned_files
                 
@@ -537,7 +536,7 @@ def fastatonexus(infile, outfile, format_in = 'fasta', format_out = 'nexus', pro
         size = align.get_alignment_length() + gaps
     vprint(infile, 'alignment size', str(size))
     align.sort()
-    with open(outfile, 'wb') as out:
+    with open(outfile, 'w') as out:
         try:
             AlignIO.write(align, out, format_out)
         except:

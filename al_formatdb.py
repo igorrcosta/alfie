@@ -40,12 +40,12 @@ def run_formatdb(fasta_file, out_file, out_path, log_file='/dev/null'):
     log_file = os.path.abspath(log_file)
     old_dir = os.getcwd()
     os.chdir(out_path)
-    command = 'formatdb -p F -i '
+    command = 'makeblastdb -dbtype nucl -in '
     command += fasta_file
-    command += ' -l ' 
+    command += ' -logfile ' 
     command += log_file
     if out_file:
-        command += ' -n  '
+        command += ' -out  '
         command += out_file
     command = ssplit(command)
     try:
@@ -54,7 +54,7 @@ def run_formatdb(fasta_file, out_file, out_path, log_file='/dev/null'):
         os.chdir(old_dir)
     except:
         os.chdir(old_dir)
-        print('Something went wrong with formatdb!')
+        print('Something went wrong with makeblastdb!')
         raise
 
 
