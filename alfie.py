@@ -20,7 +20,7 @@ from copy import deepcopy
 def argument_parser(hlp=False):
     '''alfie.py'''
 
-    default_out = os.getcwd()
+    default_out = os.getcwd() + '/out/'
     parser = argparse.ArgumentParser(description = 'Finds ALs', add_help = False,
                                      argument_default = None, fromfile_prefix_chars = '@',
                                      formatter_class = argparse.RawTextHelpFormatter)
