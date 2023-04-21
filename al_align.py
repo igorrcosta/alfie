@@ -421,8 +421,10 @@ def fasta2phylip(infile, outfile):
         sp_ids = []
         for l in fasta:
             if l.startswith('>'):
-                sp_ids.append('{}-AL'.format(l.strip()[1:11]))
-                #sp_ids.append('{}-AL{}'.format(l.strip()[1:11], al_id))
+                l = l.strip()[1:]
+                sp_name = l.spit()[0]
+                al_index = l.split()[1]
+                sp_ids.append('{}^{}'.format(al_index, sp_name))
                 if seq:
                     seqs.append(seq)
                 seq = ''
@@ -434,8 +436,8 @@ def fasta2phylip(infile, outfile):
         first_line ='\n {}     {}\n\n'.format(len(sp_ids), len(seqs[0])) 
         out.write(first_line)
         lines.append(first_line)
-        for n, sp in enumerate(zip(sp_ids, seqs)):
-            line = sp[0]+'^'+str(n)+'\n'+ sp[1] + '\n'
+        for sp in zip(sp_ids, seqs):
+            line = sp[0] +'\n'+ sp[1] + '\n'
             out.write(line)
             lines.append(line)
     return ''.join(lines)
@@ -455,37 +457,22 @@ def join_nexus_by_chromo(path, aligned_files, min_align_size, nogaps, vprint):
 def join_nexus(path, sizes, nexus_files, outfile='all.nexus'):
     soma_old = 0
     soma = 0
+    start = '#nexus\nbegin data;\n    nchar=' + str(soma) + ';\n    format datatype=DNA interleave missing=? gap=-;\n    matrix\n'''
+    seqs = ''
     append = '''
 
 ;
 end;
-begin mrbayes;
- set autoclose=yes nowarn=yes;
- outgroup 4;
-[BEST uses taxset to define which allele belongs to which species.]
-[for example, taxset H=1; says that the first sequence belongs to the species H]
-taxset Gorilla = 1;
-taxset Homo = 2;
-taxset Pan = 3;
-taxset Pongo = 4;
-'''
+
+begin sets;
+dimensions ntax='''
+    append += str(n) + '\n'
     for n, s in enumerate(sizes):
         soma = soma_old + s
-        append += 'CHARSET gene' + str(n + 1) + ' = ' + str(soma_old + 1) + ' - ' + str(soma) + ';\n'
+        append += 'charset "locus' + str(n + 1) + '" = ' + str(soma_old + 1) + '-' + str(soma) + ';\n'
         soma_old = soma
-    start = 'begin data;\n   dimensions ntax=4 nchar=' + str(soma) + ';\n   format datatype=DNA interleave missing=? gap=-;\n   matrix\n'''
+    append += 'end;'
     n = len(nexus_files)
-    append += 'partition Genes = ' + str(n) + ': '
-    for i in range(n):
-        append += 'gene' + str(i+1) + ', '
-    append = append[:-2] + ';\n'
-    append += '''set partition=Genes;
-prset   thetapr=invgamma(3,0.003) GeneMuPr=uniform(0.5,1.5) BEST=1;
- unlink  topology=(all) brlens=(all)  genemu=(all);
- mcmc ngen=5000000 nrun = 2 burnin=1000000 nchain = 2 samplefreq=100 ;
- quit;
- end;'''
-    seqs = ''
     nexus_files.sort()
     with open(path + outfile, 'w') as nex_out:
         nex_out.write(start)
