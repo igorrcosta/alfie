@@ -158,7 +158,7 @@ def locus(args):
             end = start + locus_length
             while end <= locus_coords[1]:
                 count += 1
-                al = str(c.seq)[start:end] #grab a slice
+                al = str(c.seq[start:end]) #grab a slice
                 al = al.replace('n', 'N')
                 if al.count('N') > max_n: #check number of Ns
                     if max_n == 0:
