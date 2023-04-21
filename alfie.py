@@ -138,6 +138,8 @@ def main():
     align_args['chromo_sep'] = False
     align_args['log'] = args['log'] + 'align.log'
     align_args['sum'] =  blast_args['sum']
+    if args['genomes'] == [args['reference']]:
+        align_args['skip_align'] = True
     if args['uce_coordinate']:
         align_args['parts'] = 2
     else:
@@ -145,6 +147,7 @@ def main():
     if len(args['idist']) == 1:
         align_args['idist'] = args['idist'][0]
         align_args['dist_file'] = args['outpath'] + '/distances.txt'
+        logger('starting alignment')
         al_align.main(align_args)
     else:
         for dist in args['idist']:
@@ -155,6 +158,7 @@ def main():
             except OSError:
                 pass
             align_args['dist_file'] = args['outpath'] + '/distances.txt'
+            logger('starting alignment with distance {}'.format(dist))
             al_align.main(align_args)
 
 

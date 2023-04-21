@@ -77,6 +77,7 @@ def argument_parser(hlp = False):
                         dest = 'pick', help = 'Pick only N ALs.')
     parser.add_argument('--remove_gaps', action = 'store_true', dest = 'nogaps', help = 'Remove gaps from the final alignment.')
     parser.add_argument('--chromo_sep', action = 'store_true',  dest = 'chromo_sep', help = 'Separate ALs by chromossome.')
+    parser.add_argument('--skip_alignment', action = 'store_true', dest = 'skip_align', help = 'Skip alignment with clustal, only filter for distances.')
     parser.add_argument('-v', '--verbose', action = 'store_true', dest = 'verbose', help = 'Verbose switch.')
     if hlp:
         args = parser.parse_args(['-h'])
@@ -114,6 +115,9 @@ def main(args):
     if args['filter']:
         for f in args['filter']:
             separated_files = check_for_duplicates(separated_files, f, vprint)
+    if args['skip_align']:
+        concatenate_fasta(args['outpath'], separated_files)
+        return
     aligned_files = run_clustal(args['outpath'], separated_files)
     vprint(str(len(separated_files)), ' fasta files.')
     folder = '/'.join(args['outpath'].split('/')[:-1]) + '/'
@@ -397,6 +401,16 @@ def join_fasta(path, aligned_files, outfile='all.fasta'):
     with open(path + outfile, 'w') as fasta_out:
         for f in aligned_files:
             f = f.replace('.nexus', '.aln')
+            f_id = f.split('.')[0]
+            with open(path + f, 'r') as fasta:
+                for l in fasta:
+                    if l.startswith('>'):
+                        l = '>' + f_id + '_' + l[1:]
+                    fasta_out.write(l)
+
+def concatenate_fasta(path, files, outfile='all.fasta'):
+    with open(path + outfile, 'w') as fasta_out:
+        for f in files:
             f_id = f.split('.')[0]
             with open(path + f, 'r') as fasta:
                 for l in fasta:
