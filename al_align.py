@@ -422,7 +422,7 @@ def fasta2phylip(infile, outfile):
         for l in fasta:
             if l.startswith('>'):
                 l = l.strip()[1:]
-                sp_name = l.spit()[0]
+                sp_name = l.split()[0]
                 al_index = l.split()[1]
                 sp_ids.append('{}^{}'.format(al_index, sp_name))
                 if seq:
@@ -457,7 +457,6 @@ def join_nexus_by_chromo(path, aligned_files, min_align_size, nogaps, vprint):
 def join_nexus(path, sizes, nexus_files, outfile='all.nexus'):
     soma_old = 0
     soma = 0
-    start = '#nexus\nbegin data;\n    nchar=' + str(soma) + ';\n    format datatype=DNA interleave missing=? gap=-;\n    matrix\n'''
     seqs = ''
     append = '''
 
@@ -465,14 +464,13 @@ def join_nexus(path, sizes, nexus_files, outfile='all.nexus'):
 end;
 
 begin sets;
-dimensions ntax='''
-    append += str(n) + '\n'
+'''
     for n, s in enumerate(sizes):
         soma = soma_old + s
         append += 'charset "locus' + str(n + 1) + '" = ' + str(soma_old + 1) + '-' + str(soma) + ';\n'
         soma_old = soma
     append += 'end;'
-    n = len(nexus_files)
+    start = '#nexus\nbegin data;\n    nchar=' + str(soma) + ';\n    format datatype=DNA interleave missing=? gap=-;\n    matrix\n'''
     nexus_files.sort()
     with open(path + outfile, 'w') as nex_out:
         nex_out.write(start)
