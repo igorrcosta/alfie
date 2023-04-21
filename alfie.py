@@ -6,7 +6,7 @@
 __author__ = 'Igor Rodrigues da Costa'
 __contact__ = 'igor.bioinfo@gmail.com'
 
-''' This program will wrap all ALs predictor scripts in a user-friendly interface.'''
+''' This program will wrap all ALs predictor scripts in a user-friendly interface. test'''
 
 import os
 import argparse
@@ -27,9 +27,9 @@ def argument_parser(hlp=False):
     parser.add_argument("-h", "--help", action = "help", help = "Show this help message and exit.")
     parser.add_argument('-r', '--reference', nargs = '?', type = str, required = True,\
                         help = 'Path to the FASTA file with the reference (query) genome.')
-    parser.add_argument('-i', '--genomes', nargs = '*', type = str, required = True,\
-                        help = 'Paths to the FASTA files with the other genomes.')
-    parser.add_argument('-g', '--gtf', nargs = '?', type = str, \
+    parser.add_argument('-i', '--genomes', nargs = '*', type = str, default = '',\
+                        help = 'Paths to the FASTA files with the other genomes. If empty, find ALs that have no copies in the reference genome.')
+    parser.add_argument('-g', '--gtf', nargs = '?', type = str, default = '',\
                         dest = 'est', help = 'GTF File with all reference genome features coordinates. Only used for Anonymous Loci.')
     parser.add_argument('-o', '--outpath', nargs = '?', type = str, default = default_out,\
                         dest = 'outpath', help = 'Path where the ALs will be saved.\n(default: %(default)s)')

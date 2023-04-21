@@ -94,17 +94,20 @@ def locus(args):
         chromosome_dict = chromosome_parser(args['genome'], vprint) #slow
     chromosomes = list(chromosome_dict.keys()) #chromosome_dict = {chr:chr_size}
     chromosomes.sort() #ordered by name
-    #find the coordinates of all GFF featues.
-    try:
-        est_list = gtf_parser(args['est'], args['cds'])
-        vprint('\nGTF file found and parsed. \n')
-    except:
+    if args['est']:
+        #find the coordinates of all GFF featues.
         try:
-            est_list = info_parser(args['est'])
-            vprint('\nInfo file found and parsed.\n')
+            est_list = gtf_parser(args['est'], args['cds'])
+            vprint('\nGTF file found and parsed. \n')
         except:
-            vprint('EST file must be in GTF or info format.\n')
-            raise argparse.ArgumentTypeError('File with genomic features must be of gtf or info format')
+            try:
+                est_list = info_parser(args['est'])
+                vprint('\nInfo file found and parsed.\n')
+            except:
+                vprint('EST file must be in GTF or info format.\n')
+                raise argparse.ArgumentTypeError('File with genomic features must be of gtf or info format')
+    else:
+        est_list = []
     #make a dictionary with the gene coordinates for every chromosome
     est_dict = est_info(est_list, chromosomes, vprint)
     #make a dictionary with the anonymous regions of every chromosome
