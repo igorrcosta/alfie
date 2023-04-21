@@ -136,6 +136,7 @@ def main():
     align_args = deepcopy(args)
     align_args['filter'] = False
     align_args['chromo_sep'] = False
+    align_args['skip_align'] = False
     align_args['log'] = args['log'] + 'align.log'
     align_args['sum'] =  blast_args['sum']
     if args['genomes'] == [args['reference']]:
