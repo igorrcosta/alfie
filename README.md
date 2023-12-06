@@ -7,10 +7,10 @@ A python package for the acquisition of anonymous or anchor loci datasets
 ### SUMMARY
 
 1. [Introduction](#1)
-   1.1. [What is alfie?](#1.1)
-   1.2. [How it works?](#1.2)
-        1.2.1. [Anonymous loci](#1.2.1)
-        1.2.2. [Anchor loci](#1.2.2)
+    1.1. [What is alfie?](#1.1)
+    1.2. [How it works?](#1.2)
+         1.2.1. [Anonymous loci](#1.2.1)
+         1.2.2. [Anchor loci](#1.2.2)
    1.3. [What to use alfie for?](#1.3)
 2. [Installation](#2)
    2.1.	[Downloading](#2.1)
