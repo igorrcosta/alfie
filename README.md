@@ -4,24 +4,6 @@ A python package for the acquisition of anonymous or anchor loci datasets
 
 #### Thank you for downloading alfie!
 
-### SUMMARY
-
-1. [Introduction](#1)
-  1. [What is alfie?](#1.1)
-  2. [How it works?](#1.2)
-    1. [Anonymous loci](#1.2.1)
-    2. [Anchor loci](#1.2.2)
-  3. [What to use alfie for?](#1.3)
-2. [Installation](#2)
-  1.	[Downloading](#2.1)
-  2.	[Installation requirements](#2.2)
-  3.	[Testing your instalation](#2.3)
-3. [Quick Run](#3)
-4. [Advanced Parameters](#4)
-5. [Citing Us](#5)
-
-
-
 ## <a name="1"></a>1.	Introduction
 
 ### <a name="1.1"></a>1.1.	What is alfie?
