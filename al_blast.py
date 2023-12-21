@@ -96,13 +96,14 @@ def main(args):
     best_hits = {} #best_hits = {genome_db:{al_id:(subj_name, subj_start, subj_end)}}
     for db in args['blast_database']: #Main loop, run for every genome.
         #Save all ALs, except those in excluded_als list, in the temp file.
-        all_als, query_files = create_query(args['query'], args['border'], excluded_als, vprint=vprint) 
-        vprint(str(len(all_als)) + ' putative ALs.\n Runing blast against ' + db + '\n')
+        all_ids, query_files = create_query(args['query'], args['border'], excluded_als, vprint=vprint) 
+        total_ids = (len(all_ids) - 1) * 1000 + len(all_ids[-1])
+        vprint(str(total_ids) + ' putative ALs.\n Runing blast against ' + db + '\n')
         #Run megablast using the temp query against "db".
-        for query in query_files:
+        for splice_ids, query in zip(all_ids, query_files):
             run_blast(db, query.name, args['blastm8'], megablast=False, vprint=vprint)
             #Update excluded_als with all ALs that failed id, coverage or duplication filters. Save best hits.
-            excluded_als, best_hits[db] = read_m8(args, all_als, excluded_als, vprint, db) 
+            excluded_als, best_hits[db] = read_m8(args, splice_ids, excluded_als, vprint, db) 
             os.remove(query.name) #Deletes temporary query file.
         vprint(str(len(excluded_als) - excluded_last_run) + ' ALs have been excluded against ' + db.split('/')[-1] + ' database.\n')
         excluded_last_run = len(excluded_als)
@@ -149,7 +150,7 @@ def create_output(args, excluded):
 def create_query(fasta_file,  border = 0, exclude = [], vprint = lambda x: None):
     '''Creates a temporary query fasta file from fasta_file seqs, return the list of query ids.'''
 
-    all_ids = []
+    all_ids = [[]]
     tmp_files = []
     try:
         tmp_file = NamedTemporaryFile(delete=False) #Temporary query with unique filename, will be deleted at the end.
@@ -172,14 +173,19 @@ def create_query(fasta_file,  border = 0, exclude = [], vprint = lambda x: None)
                         query.write(seq[border:-border] + '\n')
                     else:
                         query.write(seq + '\n')
-                    all_ids.append(n)
+                    all_ids[-1].append(n)
                     saved_fasta += 1
                 if not saved_fasta % 1000:
                     tmp_files.append(tmp_file)
                     tmp_file = NamedTemporaryFile(delete=False) #Temporary query with unique filename, will be deleted at the end.
                     tmp_file.close()
+                    all_ids.append([])
     if tmp_file not in tmp_files:
         tmp_files.append(tmp_file)
+    assert len(all_ids) == len(tmp_files)
+    if len(all_ids) > 1:
+        assert len(all_ids[0]) == 1000
+    assert len(all_ids[-1]) <= 1000
     return all_ids, tmp_files
     
 def readfq(fp):
