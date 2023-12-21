@@ -63,6 +63,7 @@ def argument_parser(hlp=False):
                         dest = 'id_cut', help = 'ALs with a identity higher than this will be considered homologous.\n(default: %(default)s)')
     parser.add_argument('--coverage_cutoff', nargs = '?', type = int, default = 90,\
                         dest = 'cov_cut', help = 'BLAST hits must have at least this much %%coverage to be considered hits.\n(default: %(default)s)')
+    parser.add_argument('--megablast', action = 'store_true', dest = 'megablast', help = 'Run blastn with the "-task" flag set to megablast.')
     parser.add_argument('--chromossomes', nargs = '*', type = str,\
                         dest = 'excluded', help = 'Chromossomes to be excluded.')
     parser.add_argument('--min_align', nargs = '?', type = int, default = 500,\

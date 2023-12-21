@@ -38,7 +38,7 @@ def argument_parser():
     parser.add_argument('-b', '--blast_database', nargs = '*', type = str, required = True,\
                         help = 'Location of the blast databases.')
     parser.add_argument('-q', '--query', nargs = '?', type = str, required = True,\
-                        help = 'Fasta file with the query.')
+                        help = 'Fasta file with the sequences to be blasted.')
     parser.add_argument('-o', '--outfile', nargs = '?', type = str, default = default_out,\
                         dest = 'outfile', help = 'File where the selected ALs fasta will be saved.\n(default: %(default)s)')
     parser.add_argument('-m', '--blastm8', nargs = '?', type = str, default = default_m8,\
@@ -55,6 +55,7 @@ def argument_parser():
                         dest = 'cov_cut', help = 'BLAST hits must have at least this much %%coverage to be considered hits.\n(default: %(default)s)')
     parser.add_argument('--border_size', nargs = '?', type = int, default = 0,\
                         dest = 'border', help = 'Size of the start and end margin to be excluded from the blast search.\n(default: %(default)s)')
+    parser.add_argument('--megablast', action = 'store_true', dest = 'megablast', help = 'Run blastn with the "-task" flag set to megablast.')
     parser.add_argument('-v', '--verbose', action = 'store_true', dest = 'verbose', help = 'Verbose switch.')
 
     args = parser.parse_args().__dict__
@@ -66,7 +67,7 @@ def main(args):
     #Argument processing
     args['log'] = os.path.abspath(args['log'])
     args['outfile'] = os.path.abspath(args['outfile'])
-    args['query'] = os.path.abspath(args['query'])
+    #args['query'] = os.path.abspath(args['query'])
     args['blast_database'] = [os.path.abspath(arg) for arg in args['blast_database']]
     args['sum'] = os.path.abspath(args['sum'])
     if args['verbose']:
@@ -94,23 +95,17 @@ def main(args):
     excluded_last_run = 0
     best_hits = {} #best_hits = {genome_db:{al_id:(subj_name, subj_start, subj_end)}}
     for db in args['blast_database']: #Main loop, run for every genome.
-        try:
-            tmp = NamedTemporaryFile(delete=False) #Temporary query with unique filename, will be deleted at the end.
-            tmp.close()
-        except:
-            vprint('Can\'t create temporary file.\n')
-            raise
         #Save all ALs, except those in excluded_als list, in the temp file.
-        all_als = create_query(args['query'], tmp.name, args['border'], excluded_als) 
+        all_als, query_files = create_query(args['query'], args['border'], excluded_als, vprint=vprint) 
         vprint(str(len(all_als)) + ' putative ALs.\n Runing blast against ' + db + '\n')
         #Run megablast using the temp query against "db".
-        run_blast(db, tmp.name, args['blastm8'])
-        #Update excluded_als with all ALs that failed id, coverage or duplication filters. Save best hits.
-        excluded_als, best_hits[db] = read_m8(args, all_als, excluded_als, vprint, db) 
+        for query in query_files:
+            run_blast(db, query.name, args['blastm8'], megablast=False, vprint=vprint)
+            #Update excluded_als with all ALs that failed id, coverage or duplication filters. Save best hits.
+            excluded_als, best_hits[db] = read_m8(args, all_als, excluded_als, vprint, db) 
+            os.remove(query.name) #Deletes temporary query file.
         vprint(str(len(excluded_als) - excluded_last_run) + ' ALs have been excluded against ' + db.split('/')[-1] + ' database.\n')
         excluded_last_run = len(excluded_als)
-        tmp.close()
-    os.unlink(tmp.name) #Deletes temporary query file.
     #Writing output
     final_als = create_output(args, excluded_als) #Save the final filtered set of ALs in fasta format.
     create_sum(args, best_hits, final_als) #save a tabular file with a sumary of the blast searchs.
@@ -151,26 +146,41 @@ def create_output(args, excluded):
                 final_als.append(al)
     return final_als
 
-def create_query(fasta_file, tmp_file,  border = 0, exclude = []):
+def create_query(fasta_file,  border = 0, exclude = [], vprint = lambda x: None):
     '''Creates a temporary query fasta file from fasta_file seqs, return the list of query ids.'''
 
     all_ids = []
-    with open(tmp_file, 'w') as query:
-        with open(fasta_file, 'r') as ff:
-            for name, seq, none in readfq(ff):
-                try:
-                    n = name.split('|')[0].split('_')[1]
-                except:
-                    print(name + ' is not well formated.')
-                    continue
-                if n not in exclude:
+    tmp_files = []
+    try:
+        tmp_file = NamedTemporaryFile(delete=False) #Temporary query with unique filename, will be deleted at the end.
+        tmp_file.close()
+    except:
+        vprint('Can\'t create temporary file.\n')
+        raise
+    saved_fasta = 0 # Change files every 1k seq.
+    with open(fasta_file, 'r') as ff:
+        for name, seq, none in readfq(ff):
+            try:
+                n = name.split('|')[0].split('_')[1]
+            except:
+                print(name + ' is not well formated.')
+                continue
+            if n not in exclude:
+                with open(tmp_file.name, 'a') as query:
                     query.write('>' + name + '\n')
                     if border > 0:
                         query.write(seq[border:-border] + '\n')
                     else:
                         query.write(seq + '\n')
                     all_ids.append(n)
-    return all_ids
+                    saved_fasta += 1
+                if not saved_fasta % 1000:
+                    tmp_files.append(tmp_file)
+                    tmp_file = NamedTemporaryFile(delete=False) #Temporary query with unique filename, will be deleted at the end.
+                    tmp_file.close()
+    if tmp_file not in tmp_files:
+        tmp_files.append(tmp_file)
+    return all_ids, tmp_files
     
 def readfq(fp):
     '''This is fasta/q parser generator function.'''
@@ -205,18 +215,22 @@ def readfq(fp):
                 yield name, seq, None # Yield a fasta record instead
                 break
             
-def run_blast(db, query, m8):
+def run_blast(db, query, m8, megablast=True, vprint=lambda x: None):
     '''Blast query file against db using default settings.'''
 
     if '*dbname*' in m8:
         m8 = m8.replace('*dbname*', db_name(db))
-    command = 'blastn -task megablast -db '
+    command = 'blastn'
+    if megablast:
+        command += ' -task megablast'
+    command += ' -db '
     command += db
     command += ' -query '
     command += query
     command += ' -out '
     command += m8
-    command += ' -outfmt 6 -num_threads 4 -evalue 0.01'
+    command += ' -outfmt 6 -num_threads 6 -evalue 0.01'
+    vprint('blast command: ', command)
     command = ssplit(command)
     try:
         a = Popen(command)
@@ -247,6 +261,8 @@ def read_m8(args, all_ids, excluded = [], vprint = lambda x: None, db = ''):
             coverage = abs(subj_end - subj_start)
             subj_name = str(l.split()[1])
             query_size = int(l.split('|')[1].split(':')[2].split()[0]) -  int(l.split('|')[1].split(':')[1])
+            #print("n: ", n, "identity: ", identity, "start: ", subj_start, "coverage: ", coverage, "name: ", subj_name, "q size: ", query_size)
+            #print(n not in excluded, query_size*100.0/coverage >= args['cov_cut'])
             if n not in excluded and query_size*100.0/coverage >= args['cov_cut']: # not already excluded and coverage above cutoff
                 if identity > args['id_cut']: #above identity cutoff, may be duplicated...
                     if n in low_coverage:
@@ -285,9 +301,6 @@ def read_m8(args, all_ids, excluded = [], vprint = lambda x: None, db = ''):
     vprint(str(len(not_found)) + ' excluded due to not being found.\n')
     vprint(str(len(excluded)) + ' total excluded. \n')
     return excluded, best_hits
-
-def remove_temp(file_name):
-    os.remove(file_name)
 
 if __name__ == '__main__':
     args = argument_parser()
