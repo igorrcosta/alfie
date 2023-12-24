@@ -236,7 +236,7 @@ def run_blast(db, query, m8, megablast=True, vprint=lambda x: None):
     command += ' -out '
     command += m8
     command += ' -outfmt 6 -num_threads 6 -evalue 0.01'
-    vprint('blast command: ', command)
+    vprint('blast command: ', command, '\n')
     command = ssplit(command)
     try:
         a = Popen(command)
