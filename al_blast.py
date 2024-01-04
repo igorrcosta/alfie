@@ -94,23 +94,30 @@ def main(args):
     excluded_als = []
     excluded_last_run = 0
     best_hits = {} #best_hits = {genome_db:{al_id:(subj_name, subj_start, subj_end)}}
+    #print(args['blast_database'])
     for db in args['blast_database']: #Main loop, run for every genome.
+        best_hits[db] = {}
         #Save all ALs, except those in excluded_als list, in the temp file.
         all_ids, query_files = create_query(args['query'], args['border'], excluded_als, vprint=vprint) 
-        total_ids = (len(all_ids) - 1) * 1000 + len(all_ids[-1])
+        total_ids = 0
+        for l in all_ids:
+            total_ids += len(l)
         vprint(str(total_ids) + ' putative ALs.\n Runing blast against ' + db + '\n')
         #Run megablast using the temp query against "db".
-        for splice_ids, query in zip(all_ids, query_files):
-            run_blast(db, query.name, args['blastm8'], megablast=False, vprint=vprint)
+        for run_n, (splice_ids, query) in enumerate(zip(all_ids, query_files)):
+            print(f'Blasting query: {run_n + 1}/{len(query_files)} against db {db}')
+            run_blast(db, query, args['blastm8'], megablast=False, vprint=vprint)
             #Update excluded_als with all ALs that failed id, coverage or duplication filters. Save best hits.
-            excluded_als, best_hits[db] = read_m8(args, splice_ids, excluded_als, vprint, db) 
-            os.remove(query.name) #Deletes temporary query file.
+            excluded_als, db_best_hits = read_m8(args, splice_ids, excluded_als, vprint, db) 
+            best_hits[db].update(db_best_hits)
+            os.remove(query) #Deletes temporary query file.
         vprint(str(len(excluded_als) - excluded_last_run) + ' ALs have been excluded against ' + db.split('/')[-1] + ' database.\n')
         excluded_last_run = len(excluded_als)
     #Writing output
     final_als = create_output(args, excluded_als) #Save the final filtered set of ALs in fasta format.
-    create_sum(args, best_hits, final_als) #save a tabular file with a sumary of the blast searchs.
-    return final_als, best_hits
+    #print(best_hits)
+    writen_als = create_sum(args, best_hits, final_als) #save a tabular file with a sumary of the blast searchs.
+    return writen_als, best_hits
 
 def create_sum(args, best_hits, final_als):
     '''write the start and end of als found in a .sum file. 
@@ -122,10 +129,14 @@ def create_sum(args, best_hits, final_als):
     al_id2  bd_name2    subj_name2   subj_start  subj_end'''
     
     sumfile = args['sum']
+    writen_als = []
     with open(sumfile, 'w') as sumf:
         for al in final_als:
             for db in sorted(best_hits.keys()):
-                sumf.write('\t'.join((str(al), db_name(db)) + best_hits[db][al]) + '\n')
+                if al in best_hits[db]:
+                    sumf.write('\t'.join((str(al), db_name(db)) + best_hits[db][al]) + '\n')
+                    writen_als.append(al)
+    return writen_als
     
 def db_name(db):
     '''return the file name from a path.'''
@@ -158,6 +169,7 @@ def create_query(fasta_file,  border = 0, exclude = [], vprint = lambda x: None)
     except:
         vprint('Can\'t create temporary file.\n')
         raise
+    tmp_files.append(tmp_file.name)
     saved_fasta = 0 # Change files every 1k seq.
     with open(fasta_file, 'r') as ff:
         for name, seq, none in readfq(ff):
@@ -166,6 +178,8 @@ def create_query(fasta_file,  border = 0, exclude = [], vprint = lambda x: None)
             except:
                 print(name + ' is not well formated.')
                 continue
+#            if int(n) > 2000:
+#                break
             if n not in exclude:
                 with open(tmp_file.name, 'a') as query:
                     query.write('>' + name + '\n')
@@ -175,17 +189,19 @@ def create_query(fasta_file,  border = 0, exclude = [], vprint = lambda x: None)
                         query.write(seq + '\n')
                     all_ids[-1].append(n)
                     saved_fasta += 1
-                if not saved_fasta % 1000:
-                    tmp_files.append(tmp_file)
+                if not saved_fasta % 100:
+#                    if len(tmp_files) == 20:
+#                        break
                     tmp_file = NamedTemporaryFile(delete=False) #Temporary query with unique filename, will be deleted at the end.
                     tmp_file.close()
+                    tmp_files.append(tmp_file.name)
                     all_ids.append([])
-    if tmp_file not in tmp_files:
-        tmp_files.append(tmp_file)
+    if tmp_file.name not in tmp_files:
+        tmp_files.append(tmp_file.name)
     assert len(all_ids) == len(tmp_files)
     if len(all_ids) > 1:
-        assert len(all_ids[0]) == 1000
-    assert len(all_ids[-1]) <= 1000
+        assert len(all_ids[0]) == 100
+    assert len(all_ids[-1]) <= 100
     return all_ids, tmp_files
     
 def readfq(fp):
@@ -257,6 +273,7 @@ def read_m8(args, all_ids, excluded = [], vprint = lambda x: None, db = ''):
     best_hits = {} #best_hits[id] = (subj_name, subj_start, subj_end)
     if '*dbname*' in m8 and db:
         m8 = m8.replace('*dbname*', db_name(db))
+    #print('reading file: ', m8)
     with open(m8, 'r') as blast:
         for l in blast:
             total += 1
@@ -267,9 +284,9 @@ def read_m8(args, all_ids, excluded = [], vprint = lambda x: None, db = ''):
             coverage = abs(subj_end - subj_start)
             subj_name = str(l.split()[1])
             query_size = int(l.split('|')[1].split(':')[2].split()[0]) -  int(l.split('|')[1].split(':')[1])
-            #print("n: ", n, "identity: ", identity, "start: ", subj_start, "coverage: ", coverage, "name: ", subj_name, "q size: ", query_size)
             #print(n not in excluded, query_size*100.0/coverage >= args['cov_cut'])
             if n not in excluded and query_size*100.0/coverage >= args['cov_cut']: # not already excluded and coverage above cutoff
+                #print("n: ", n, "identity: ", identity, "start: ", subj_start, "coverage: ", coverage, "name: ", subj_name, "q size: ", query_size)
                 if identity > args['id_cut']: #above identity cutoff, may be duplicated...
                     if n in low_coverage:
                         low_coverage.remove(n) #found a hit with high coverage
@@ -301,6 +318,7 @@ def read_m8(args, all_ids, excluded = [], vprint = lambda x: None, db = ''):
         if i not in found:
             excluded.append(i)
             not_found.append(i)
+    vprint(str(len(best_hits)) + ' ALs have not been excluded.\n')
     vprint(str(len(low_coverage)) + ' excluded due to low coverage.\n')
     vprint(str(len(low_id)) + ' excluded due to low identity.\n')
     vprint(str(len(duplicated)) + ' excluded due to duplication.\n')
