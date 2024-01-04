@@ -33,7 +33,7 @@ def argument_parser(hlp=False):
                         dest = 'est', help = 'GTF File with all reference genome features coordinates. Only used for Anonymous Loci.')
     parser.add_argument('-o', '--outpath', nargs = '?', type = str, default = default_out,\
                         dest = 'outpath', help = 'Path where the ALs will be saved.\n(default: %(default)s)')
-    parser.add_argument('-l', '--log', nargs = '?', type = str, default = 'alfie.log',\
+    parser.add_argument('-l', '--log', nargs = '?', type = str, default = '',\
                         dest = 'log', help = 'Log file. (default: %(default)s)')
     parser.add_argument('-f', '--skip_formatdb', action = 'store_true', dest = 'skip_formatdb', help = 'Skip making BLAST databases, look for BLAST databases in the output folder (eg.: 0.db.nsq).')
     parser.add_argument('--uce_distance', nargs = '?', type = int, default = 0,\
@@ -100,7 +100,7 @@ def main():
         finder_args = deepcopy(args)
         finder_args['genome'] = args['reference']
         finder_args['outfile'] = args['outpath'] + 'candidate.fasta'
-        finder_args['log'] = args['log'] + 'finder.log'
+        finder_args['log'] = args['outpath'] + args['log'] + 'al_finder.log'
         finder_args['uce_dist'] = args['uce_distance']
         finder_args['uce'] = args['uce_coordinate']
         uce_finder.main(finder_args)
@@ -112,7 +112,7 @@ def main():
         finder_args['genome'] = args['reference']
         finder_args['circos'] = False
         finder_args['idist'] = 0
-        finder_args['log'] = args['log'] + 'finder.log'
+        finder_args['log'] = args['outpath'] + args['log'] + 'al_finder.log'
         al_finder.locus(finder_args)
     args['genomes'].insert(0, args['reference']) #insert reference genome back into the genome list.
     blast_args = deepcopy(args)
@@ -138,7 +138,7 @@ def main():
     align_args['filter'] = False
     align_args['chromo_sep'] = False
     align_args['skip_align'] = False
-    align_args['log'] = args['log'] + 'align.log'
+    align_args['log'] = args['outpath'] + args['log'] + 'al_align.log'
     align_args['sum'] =  blast_args['sum']
     if args['genomes'] == [args['reference']]:
         align_args['skip_align'] = True
