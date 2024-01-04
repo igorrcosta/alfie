@@ -286,9 +286,13 @@ def main(args):
     filtered_als = filter_al(args, vprint) # Remove ALs too close to each other and filters excluded chromossomes.
     seqs = read_sum(args['genomes'], args['sum'], filtered_als, vprint, args['parts'], chromo_sep=args['chromo_sep']) #seqs[AL1] = [Homo:Seq_H, Gorilla:Seq_G, Pongo:Seq_P, Pan:Seq_C]
     fasta_folder = args['outpath'] + 'fasta/'
+    os.makedirs(fasta_folder, exist_ok=True)
     align_folder = args['outpath'] + 'aligned/'
+    os.makedirs(align_folder, exist_ok=True)
     nexus_folder = args['outpath'] + 'nexus/'
+    os.makedirs(nexus_folder, exist_ok=True)
     phylip_folder = args['outpath'] + 'phylip/'
+    os.makedirs(phylip_folder, exist_ok=True)
     separated_files = write_seqs(fasta_folder, seqs, args['min_seqs'], args['min_size'], vprint, chromo_sep=args['chromo_sep'])
     if args['filter']:
         for f in args['filter']:
@@ -298,7 +302,7 @@ def main(args):
         return
     aligned_files = run_clustal(fasta_folder, align_folder, separated_files)
     vprint(str(len(separated_files)), ' fasta files.')
-    aligned_files = [folder + filename for filename in os.listdir(align_folder) if '.aln' in filename]
+    aligned_files = [align_folder + filename for filename in os.listdir(align_folder) if '.aln' in filename]
     vprint(str(len(aligned_files)), ' aligned files.')
     if args['chromo_sep']:
         join_nexus_by_chromo(align_folder, nexus_folder, aligned_files, args['align_size'], args['nogaps'], vprint)
@@ -307,7 +311,7 @@ def main(args):
         if args['pick']:
             assert len(nexus_files) <= args['pick']
         join_nexus(nexus_folder, sizes, nexus_files, ntax=len(args['genomes']))
-        join_fasta(fasta_folder, nexus_files)
+        join_fasta(align_folder, align_folder, nexus_files)
         make_phylip(align_folder, phylip_folder, nexus_files)
         with open(args['outpath'] + 'sample.log', 'w') as sample_file:
             for n in nexus_files:
@@ -574,13 +578,13 @@ def make_nexus(inpath, outpath, aligned_files, min_align_size, pick, nogaps, vpr
         sizes.append(size_dict[f])
     return sizes, nexus_files
 
-def join_fasta(path, aligned_files, outfile='all.fasta'):
+def join_fasta(inpath, outpath, aligned_files, outfile='all.fasta'):
     aligned_files.sort()
-    with open(path + outfile, 'w') as fasta_out:
+    with open(outpath + outfile, 'w') as fasta_out:
         for f in aligned_files:
             f = f.replace('.nexus', '.aln')
             f_id = f.split('.')[0]
-            with open(path + f, 'r') as fasta:
+            with open(inpath + f, 'r') as fasta:
                 for l in fasta:
                     if l.startswith('>'):
                         l = '>' + f_id + '_' + l[1:]
