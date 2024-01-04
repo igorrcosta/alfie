@@ -285,27 +285,30 @@ def main(args):
     args['min_seqs'] = len(args['genomes'])
     filtered_als = filter_al(args, vprint) # Remove ALs too close to each other and filters excluded chromossomes.
     seqs = read_sum(args['genomes'], args['sum'], filtered_als, vprint, args['parts'], chromo_sep=args['chromo_sep']) #seqs[AL1] = [Homo:Seq_H, Gorilla:Seq_G, Pongo:Seq_P, Pan:Seq_C]
-    separated_files = write_seqs(args['outpath'], seqs, args['min_seqs'], args['min_size'], vprint, chromo_sep=args['chromo_sep'])
+    fasta_folder = args['outpath'] + 'fasta/'
+    align_folder = args['outpath'] + 'aligned/'
+    nexus_folder = args['outpath'] + 'nexus/'
+    phylip_folder = args['outpath'] + 'phylip/'
+    separated_files = write_seqs(fasta_folder, seqs, args['min_seqs'], args['min_size'], vprint, chromo_sep=args['chromo_sep'])
     if args['filter']:
         for f in args['filter']:
             separated_files = check_for_duplicates(separated_files, f, vprint)
     if args['skip_align']:
-        concatenate_fasta(args['outpath'], separated_files)
+        concatenate_fasta(fasta_folder, separated_files)
         return
-    aligned_files = run_clustal(args['outpath'], separated_files)
+    aligned_files = run_clustal(fasta_folder, align_folder, separated_files)
     vprint(str(len(separated_files)), ' fasta files.')
-    folder = '/'.join(args['outpath'].split('/')[:-1]) + '/'
-    aligned_files = [folder + filename for filename in os.listdir(folder) if '.aln' in filename]
+    aligned_files = [folder + filename for filename in os.listdir(align_folder) if '.aln' in filename]
     vprint(str(len(aligned_files)), ' aligned files.')
     if args['chromo_sep']:
-        join_nexus_by_chromo(args['outpath'], aligned_files, args['align_size'], args['nogaps'], vprint)
+        join_nexus_by_chromo(align_folder, nexus_folder, aligned_files, args['align_size'], args['nogaps'], vprint)
     else: 
-        sizes, nexus_files = make_nexus(args['outpath'], aligned_files, args['align_size'], args['pick'], args['nogaps'], vprint)
+        sizes, nexus_files = make_nexus(align_folder, nexus_folder, aligned_files, args['align_size'], args['pick'], args['nogaps'], vprint)
         if args['pick']:
             assert len(nexus_files) <= args['pick']
-        join_nexus(args['outpath'], sizes, nexus_files, ntax=len(args['genomes']))
-        join_fasta(args['outpath'], nexus_files)
-        make_phylip(args['outpath'], nexus_files)
+        join_nexus(nexus_folder, sizes, nexus_files, ntax=len(args['genomes']))
+        join_fasta(fasta_folder, nexus_files)
+        make_phylip(align_folder, phylip_folder, nexus_files)
         with open(args['outpath'] + 'sample.log', 'w') as sample_file:
             for n in nexus_files:
                 sample_file.write(n + '\n')
@@ -447,6 +450,7 @@ def sort_al(al_list):
 
 def write_seqs(outpath, seq_dict, minseqs, minsize, vprint, chromo_sep=False):
     files = []
+    sp_names = []
     for al in seq_dict:
         seqs = seq_dict[al]
         new_file = outpath + al + '.fasta'
@@ -462,7 +466,7 @@ def write_seqs(outpath, seq_dict, minseqs, minsize, vprint, chromo_sep=False):
                 break
         if filter:
             for n, sp in enumerate(sorted(seqs)):
-                name = sp.split('.')[0].split('_')[0]
+                name = sp.split('.')[0].split('_')[0] + '_' + str(n)
                 records.append(SeqRecord(seqs[sp], id = name, description = al)) #ID is not n if there is someone missing!
             with open(new_file, 'w') as outfile:
                 SeqIO.write(records, outfile, 'fasta')
@@ -499,23 +503,23 @@ def check_for_duplicates(files, path, vprint, hash=sha1):
                 vprint("Duplicate found: %s and %s" % (full_path, duplicate))
     return files
 
-def run_clustal(outpath, fasta_files):
+def run_clustal(inpath, outpath, fasta_files):
     aligned_files = []
     clustal_log = outpath + 'clustal_log.txt'
     clean = open(clustal_log, 'w')
     clean.close()
     for fp in fasta_files:
         try:
-            command = 'clustalo --force -i ' + outpath+fp +\
+            command = 'clustalo --force -i ' + inpath+fp +\
                       ' --outfmt=FASTA -o ' + outpath+fp.split('/')[-1].replace('.fasta', '.aln')
             with open(clustal_log, 'a') as log:
-                log.write(fp + ' ' + command)
+                log.write(fp + ' ' + command + '\n')
                 a = Popen(shlex.split(command), stdout=log, stderr=log)
                 a.wait()
             aligned_files.append(fp.split('/')[-1].replace('.fasta', '.aln'))
         except OSError:
             try:
-                command = 'clustalw2 -INFILE=' + outpath+fp +\
+                command = 'clustalw2 -INFILE=' + inpath+fp +\
                           ' -ALIGN -OUTPUT=FASTA -OUTFILE=' + outpath+fp.split('/')[-1].replace('.fasta', '.aln')
                 with open(clustal_log, 'a') as log:
                     log.write(fp + ' ' + command)
@@ -527,7 +531,7 @@ def run_clustal(outpath, fasta_files):
                 raise
     return aligned_files
                 
-def make_nexus(path, aligned_files, min_align_size, pick, nogaps, vprint):
+def make_nexus(inpath, outpath, aligned_files, min_align_size, pick, nogaps, vprint):
     alns = [al.split('/')[-1] for al in aligned_files]
     size_dict = {}
     old_alns = []
@@ -549,8 +553,8 @@ def make_nexus(path, aligned_files, min_align_size, pick, nogaps, vprint):
         if len(splited_infile) > 2:
             chromo = splited_infile[1]
         outfile = infile.replace('.aln', '.nexus')
-        vprint('making nexus:', path + infile, path + outfile)
-        size, gaps = fastatonexus(path+infile, path+outfile, keep_gaps = not nogaps, vprint = vprint)
+        vprint('making nexus:', inpath + infile, outpath + outfile)
+        size, gaps = fastatonexus(inpath+infile, outpath+outfile, keep_gaps = not nogaps, vprint = vprint)
         if size - gaps < min_align_size:
             vprint(infile, 'removed due to small alignment size.')
             removed_alns.append(infile)
@@ -592,13 +596,13 @@ def concatenate_fasta(path, files, outfile='all.fasta'):
                         l = '>' + f_id + '_' + l[1:]
                     fasta_out.write(l)
 
-def make_phylip(path, nexus_files, concat_outfile='all.phylip'):
+def make_phylip(in_path, out_path, nexus_files, concat_outfile='all.phylip'):
     nexus_files.sort()
-    with open(path + concat_outfile, 'w') as out:
+    with open(out_path + concat_outfile, 'w') as out:
         for f in nexus_files:
             f = f.replace('.nexus', '.aln')
             outfile = '.'.join(f.split('.')[:-1]) + '.phylip'
-            seq = fasta2phylip(path+f, path+outfile)
+            seq = fasta2phylip(in_path+f, out_path+outfile)
             out.write(seq)
 
 def fasta2phylip(infile, outfile): 
@@ -630,7 +634,7 @@ def fasta2phylip(infile, outfile):
             lines.append(line)
     return ''.join(lines)
 
-def join_nexus_by_chromo(path, aligned_files, min_align_size, nogaps, vprint):
+def join_nexus_by_chromo(inpath, outpath, aligned_files, min_align_size, nogaps, vprint):
     chromo_dict = {}
     for af in aligned_files:
         chromo = af.split('.')[1]
@@ -639,8 +643,8 @@ def join_nexus_by_chromo(path, aligned_files, min_align_size, nogaps, vprint):
         else:
             chromo_dict[chromo] = [af]
     for chromo in chromo_dict:
-        sizes, nexus_files = make_nexus(path, chromo_dict[chromo], min_align_size, None, nogaps, vprint)
-        join_nexus(path, sizes, nexus_files, 'all.%s.nexus'%chromo)
+        sizes, nexus_files = make_nexus(inpath, outpath, chromo_dict[chromo], min_align_size, None, nogaps, vprint)
+        join_nexus(outpath, sizes, nexus_files, 'all.%s.nexus'%chromo)
 
 def join_nexus(path, sizes, nexus_files, outfile='all.nexus', ntax=0):
     soma_old = 0
