@@ -1,4 +1,4 @@
-FROM python:3.8
+FROM python:3.10
 ADD *.py ./
 ADD test/ ./test/
 ADD bin/* /usr/local/bin/

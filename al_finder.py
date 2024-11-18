@@ -119,13 +119,16 @@ def locus(args):
             locus_dict[crom] = intersect(est_pairs)
         else:
             chromosome_coords = (args['edist'], chromosome_dict[crom] - args['edist'])
+            if chromosome_coords[1] < chromosome_coords[0]:
+                chromosome_coords = (0, 0)
             if len(est_pairs) > 0:
                 locus_dict[crom] = locus_finder(est_pairs, chromosome_coords, args['gdist'])
             elif args['gdist'] >= 0:
-                locus_dict[crom] = [chromosome_coords]
+                locus_dict[crom] = locus_finder(est_pairs, chromosome_coords, args['gdist'])
             else:
                 vprint('no genes in cromossome %s'%crom)
                 locus_dict[crom] = []
+            print(crom, locus_dict[crom])
             regions_found = len(locus_dict[crom])
             regions_total += regions_found
         if not args['gene_locus']:
@@ -294,7 +297,7 @@ def locus_finder(est_pairs, genome_coords, distance):
 
     est_pairs is a list of (start, end) of all the ESTs
     genome_coords has the (start, end) of the contig/chromosome
-    dist is the minimum (or maximum, if negative) distance for a locus to be considered anonimous
+    dist is the minimum (or maximum, if negative) distance from an EST for a locus to be considered anonimous
 
     >>>al = locus_finder( [(10,100), (5000,5010)], (0,10000), 1000)    
     >>>print al

@@ -6,7 +6,7 @@
 __author__ = 'Igor Rodrigues da Costa'
 __contact__ = 'igor.bioinfo@gmail.com'
 
-''' This program will wrap all ALs predictor scripts in a user-friendly interface. test'''
+''' This program will wrap all of alfie's scripts in a single pipeline.'''
 
 import os
 import argparse

@@ -7,7 +7,7 @@ from subprocess import Popen
 from shlex import split as ssplit
 
 def test():
-    command = 'python alfie.py -r test/homo_y.fasta -i test/pan_y.fasta -g test/y.gtf -o tmp/ -v -l log'
+    command = 'python alfie.py -r test/homo_y.fasta -i test/pan_y.fasta -g test/y.gtf -o tmp/ -v'
     command = ssplit(command)
     a = Popen(command)
     a.wait()
